@@ -19,6 +19,7 @@ router.get('/plans', async (req, res) => {
     
     const plans = prices.data
       .filter(price => price.recurring) // Only subscription prices
+      .filter(price => price.product.metadata?.plan_type === 'ENTERPRISE') // Only Enterprise
       .map(price => {
         const product = price.product;
         return {
@@ -28,14 +29,10 @@ router.get('/plans', async (req, res) => {
           price: price.unit_amount / 100, // Convert from cents
           currency: price.currency,
           interval: price.recurring.interval,
-          plan_type: product.metadata?.plan_type || 'FREE',
+          trial_period_days: price.trial_period_days,
+          plan_type: product.metadata?.plan_type || 'ENTERPRISE',
           features: product.metadata?.features ? JSON.parse(product.metadata.features) : []
         };
-      })
-      .sort((a, b) => {
-        // Sort by plan type: FREE, PROFESSIONAL, ENTERPRISE
-        const order = { 'FREE': 0, 'PROFESSIONAL': 1, 'ENTERPRISE': 2 };
-        return (order[a.plan_type] || 0) - (order[b.plan_type] || 0);
       });
     
     console.log('Available plans:', plans.map(p => ({ id: p.id, name: p.name, plan_type: p.plan_type })));

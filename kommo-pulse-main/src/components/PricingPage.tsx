@@ -13,6 +13,7 @@ interface Plan {
   currency: string;
   interval: string;
   plan_type: string;
+  trial_period_days?: number;
   features: string[];
 }
 
@@ -36,53 +37,21 @@ const PricingPage: React.FC = () => {
       // Fallback to default plans if API fails
       setPlans([
         {
-          id: 'free',
-          name: 'Free',
-          description: 'Perfect for getting started',
-          price: 0,
-          currency: 'usd',
-          interval: 'month',
-          plan_type: 'FREE',
-          features: [
-            'Up to 3 team members',
-            'Basic analytics',
-            'Standard reports',
-            'Community support',
-            'API access (100 calls/day)'
-          ]
-        },
-        {
-          id: 'professional',
-          name: 'Professional',
-          description: 'For growing teams',
-          price: 29.99,
-          currency: 'usd',
-          interval: 'month',
-          plan_type: 'PROFESSIONAL',
-          features: [
-            'Up to 10 team members',
-            'Advanced analytics',
-            'Custom reports',
-            'Priority support',
-            'API access (1000 calls/day)'
-          ]
-        },
-        {
           id: 'enterprise',
           name: 'Enterprise',
-          description: 'For large organizations',
+          description: 'For organizations of all sizes',
           price: 99.99,
           currency: 'usd',
           interval: 'month',
           plan_type: 'ENTERPRISE',
+          trial_period_days: 14,
           features: [
             'Unlimited team members',
-            'Advanced analytics',
-            'Custom reports',
-            'Priority support',
-            'API access (10000 calls/day)',
+            'Advanced analytics & reporting',
+            'Custom integrations & API access',
             'White-label options',
-            'Custom integrations'
+            'Priority support',
+            '14-day free trial'
           ]
         }
       ]);
@@ -95,8 +64,16 @@ const PricingPage: React.FC = () => {
     return subscription?.plan_type === planType;
   };
 
+  const canPurchasePlan = (planType: string) => {
+    // If it's not the current plan, they can purchase it
+    if (!isCurrentPlan(planType)) return true;
+    
+    // If it is the current plan, they can only purchase if they're on trial
+    return subscription?.status === 'TRIAL';
+  };
+
   const handleUpgrade = async (planType: string) => {
-    if (isCurrentPlan(planType)) return;
+    if (!canPurchasePlan(planType)) return;
     
     setUpgrading(planType);
     try {
@@ -125,10 +102,8 @@ const PricingPage: React.FC = () => {
     switch (planType) {
       case 'ENTERPRISE':
         return <Crown className="h-6 w-6 text-purple-500" />;
-      case 'PROFESSIONAL':
-        return <Zap className="h-6 w-6 text-blue-500" />;
       default:
-        return <Check className="h-6 w-6 text-green-500" />;
+        return <Crown className="h-6 w-6 text-purple-500" />;
     }
   };
 
@@ -148,7 +123,7 @@ const PricingPage: React.FC = () => {
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
         <p className="text-xl text-gray-600">
-          Start free and upgrade as you grow
+          Start with a 14-day free trial
         </p>
       </div>
 
@@ -160,7 +135,9 @@ const PricingPage: React.FC = () => {
           >
             {isCurrentPlan(plan.plan_type) && (
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <Badge className="bg-blue-500 text-white">Current Plan</Badge>
+                <Badge className={subscription?.status === 'TRIAL' ? 'bg-orange-500 text-white' : 'bg-blue-500 text-white'}>
+                  {subscription?.status === 'TRIAL' ? 'Trial' : 'Current Plan'}
+                </Badge>
               </div>
             )}
             
@@ -190,7 +167,7 @@ const PricingPage: React.FC = () => {
             </CardContent>
             
             <CardFooter>
-              {isCurrentPlan(plan.plan_type) ? (
+              {isCurrentPlan(plan.plan_type) && subscription?.status !== 'TRIAL' ? (
                 <Button 
                   className="w-full" 
                   variant="outline"
@@ -204,7 +181,9 @@ const PricingPage: React.FC = () => {
                   onClick={() => handleUpgrade(plan.plan_type)}
                   disabled={upgrading === plan.plan_type}
                 >
-                  {upgrading === plan.plan_type ? 'Processing...' : plan.price === 0 ? 'Get Started' : 'Upgrade'}
+                  {upgrading === plan.plan_type ? 'Processing...' : 
+                   isCurrentPlan(plan.plan_type) && subscription?.status === 'TRIAL' ? 'Purchase Plan' : 
+                   plan.price === 0 ? 'Get Started' : 'Upgrade'}
                 </Button>
               )}
             </CardFooter>

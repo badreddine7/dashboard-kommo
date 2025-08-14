@@ -108,7 +108,7 @@ const CustomerPortal: React.FC = () => {
     if (subscription?.cancel_at_period_end) {
       return 'CANCELLED';
     }
-    return subscription?.status || 'FREE';
+    return subscription?.status || 'ENTERPRISE';
   };
 
   const getStatusIcon = (status: string) => {
@@ -203,7 +203,7 @@ const CustomerPortal: React.FC = () => {
               <div className="flex items-center justify-between">
                 <span className="font-medium">Plan:</span>
                 <Badge variant="outline" className="text-lg px-3 py-1">
-                  {subscription?.plan_type || 'FREE'}
+                  {subscription?.plan_type || 'ENTERPRISE'}
                 </Badge>
               </div>
               
@@ -247,7 +247,7 @@ const CustomerPortal: React.FC = () => {
                 </div>
               )}
 
-              {subscription?.plan_type !== 'FREE' && !subscription?.cancel_at_period_end && (
+              {subscription?.plan_type === 'ENTERPRISE' && !subscription?.cancel_at_period_end && (
                 <div className="pt-4 border-t">
                   <Button
                     variant="destructive"
@@ -336,29 +336,42 @@ const CustomerPortal: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <Button 
-                onClick={handleManageBilling}
-                disabled={loading || !subscription?.stripe_subscription_id}
-                className="w-full md:w-auto"
-                variant={subscription?.stripe_subscription_id ? "default" : "outline"}
-              >
-                {loading ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Opening Portal...
-                  </div>
-                ) : subscription?.stripe_subscription_id ? (
-                  <>
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    Manage Billing
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    Upgrade to Access Billing
-                  </>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button 
+                  onClick={handleManageBilling}
+                  disabled={loading || !subscription?.stripe_subscription_id}
+                  className="w-full md:w-auto"
+                  variant={subscription?.stripe_subscription_id ? "default" : "outline"}
+                >
+                  {loading ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Opening Portal...
+                    </div>
+                  ) : subscription?.stripe_subscription_id ? (
+                    <>
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Manage Billing
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Upgrade to Access Billing
+                    </>
+                  )}
+                </Button>
+
+                {subscription?.status === 'TRIAL' && (
+                  <Button 
+                    onClick={() => window.location.href = '/pricing'}
+                    className="w-full md:w-auto"
+                    variant="default"
+                  >
+                    <Crown className="h-4 w-4 mr-2" />
+                    Purchase Enterprise Plan
+                  </Button>
                 )}
-              </Button>
+              </div>
 
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-3">

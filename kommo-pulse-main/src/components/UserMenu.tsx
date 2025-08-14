@@ -40,29 +40,19 @@ export const UserMenu: React.FC = () => {
     if (!subscription) return null;
 
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-      FREE: "outline",
-      PROFESSIONAL: "default",
       ENTERPRISE: "secondary"
     };
 
     const colors: Record<string, string> = {
-      FREE: "text-blue-600 border-blue-200 bg-blue-50 dark:text-blue-400 dark:border-blue-800 dark:bg-blue-950",
-      PROFESSIONAL: "text-green-600 border-green-200 bg-green-50 dark:text-green-400 dark:border-green-800 dark:bg-green-950",
       ENTERPRISE: "text-purple-600 border-purple-200 bg-purple-50 dark:text-purple-400 dark:border-purple-800 dark:bg-purple-950"
     };
 
     return (
       <Badge variant={variants[subscription.plan_type] || "outline"} className={colors[subscription.plan_type]}>
-        {subscription.plan_type === 'FREE' && subscription.status === 'TRIAL' && (
-          <Calendar className="w-3 h-3 mr-1" />
-        )}
-        {subscription.plan_type === 'PROFESSIONAL' && (
-          <Crown className="w-3 h-3 mr-1" />
-        )}
         {subscription.plan_type === 'ENTERPRISE' && (
           <Crown className="w-3 h-3 mr-1" />
         )}
-        {subscription.plan_type === 'FREE' && subscription.status === 'TRIAL' ? 'Free Trial' : subscription.plan_type}
+        {subscription.status === 'TRIAL' ? 'Enterprise Trial' : subscription.plan_type}
       </Badge>
     );
   };

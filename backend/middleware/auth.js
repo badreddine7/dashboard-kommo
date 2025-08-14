@@ -82,7 +82,9 @@ const requireActiveSubscription = (req, res, next) => {
 
   const { status } = req.subscription;
   const now = new Date();
-  const currentPeriodEnd = req.subscription.current_period_end ? new Date(req.subscription.current_period_end) : null;
+  // Handle current_period_end as timestamp in milliseconds
+  const currentPeriodEnd = req.subscription.current_period_end ? 
+    new Date(parseInt(req.subscription.current_period_end)) : null;
   
   // Check if subscription is actually expired
   const isActuallyExpired = status === 'EXPIRED' || 
@@ -143,7 +145,9 @@ const requireFeature = (featureName) => {
 
     // Check if subscription is active
     const now = new Date();
-    const currentPeriodEnd = req.subscription.current_period_end ? new Date(req.subscription.current_period_end) : null;
+    // Handle current_period_end as timestamp in milliseconds
+    const currentPeriodEnd = req.subscription.current_period_end ? 
+      new Date(parseInt(req.subscription.current_period_end)) : null;
     
     // Auto-update status to EXPIRED if period has ended
     if (status === 'CANCELLED' && currentPeriodEnd && now > currentPeriodEnd) {
@@ -274,11 +278,9 @@ const requirePlan = (requiredPlan) => {
       });
     }
 
-    // Define plan hierarchy
+    // Define plan hierarchy (only Enterprise)
     const planHierarchy = {
-      'FREE': 0,
-      'PROFESSIONAL': 1,
-      'ENTERPRISE': 2
+      'ENTERPRISE': 0
     };
 
     const currentPlanLevel = planHierarchy[plan_type] || -1;

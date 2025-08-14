@@ -67,14 +67,14 @@ class AuthService {
       kommo_account: kommoAccount || ''
     });
 
-    // Create free trial subscription
+    // Create enterprise trial subscription
     const subscriptionId = uuidv4();
-    const trialEndsAt = getTrialEndDate('FREE');
+    const trialEndsAt = getTrialEndDate('ENTERPRISE');
     
     await dbHelpers.createSubscription({
       id: subscriptionId,
       user_id: userId,
-      plan_type: 'FREE',
+      plan_type: 'ENTERPRISE',
       status: 'TRIAL',
       trial_ends_at: trialEndsAt
     });
@@ -107,7 +107,7 @@ class AuthService {
         refreshToken
       },
       subscription: {
-        plan_type: 'FREE',
+        plan_type: 'ENTERPRISE',
         status: 'TRIAL',
         trial_ends_at: trialEndsAt
       }

@@ -62,7 +62,7 @@ const UsageTracker: React.FC = () => {
   };
 
   const getDefaultUsageData = (): UsageData => {
-    const planType = subscription?.plan_type || 'FREE';
+    const planType = subscription?.plan_type || 'ENTERPRISE';
     const limits = getPlanLimits(planType);
     
     // Use actual team member count from analytics data
@@ -89,23 +89,17 @@ const UsageTracker: React.FC = () => {
 
   const getPlanLimits = (planType: string) => {
     switch (planType) {
-      case 'PROFESSIONAL':
-        return {
-          api_calls_per_day: 1000,
-          team_members: 10,
-          custom_reports: 50
-        };
       case 'ENTERPRISE':
         return {
           api_calls_per_day: 10000,
           team_members: -1, // unlimited
           custom_reports: -1 // unlimited
         };
-      default: // FREE
+      default: // ENTERPRISE
         return {
-          api_calls_per_day: 100,
-          team_members: 3,
-          custom_reports: 5
+          api_calls_per_day: 10000,
+          team_members: -1, // unlimited
+          custom_reports: -1 // unlimited
         };
     }
   };
@@ -125,8 +119,8 @@ const UsageTracker: React.FC = () => {
   const formatLimit = (limit: number | undefined) => {
     if (limit === undefined || limit === null) {
       // Fallback to plan limits if API doesn't return limits
-      const planType = subscription?.plan_type || 'FREE';
-      const limits = getPlanLimits(planType);
+          const planType = subscription?.plan_type || 'ENTERPRISE';
+    const limits = getPlanLimits(planType);
       // Return a reasonable default based on plan type
       return planType === 'ENTERPRISE' ? 'Unlimited' : 'Unknown';
     }
@@ -270,7 +264,7 @@ const UsageTracker: React.FC = () => {
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">Current Plan:</span>
             <Badge variant="outline">
-              {subscription?.plan_type || 'FREE'}
+              {subscription?.plan_type || 'ENTERPRISE'}
             </Badge>
           </div>
           {subscription?.status === 'TRIAL' && (

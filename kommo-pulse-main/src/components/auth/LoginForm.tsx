@@ -124,7 +124,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
                 onClick={onSwitchToRegister}
                 disabled={isLoading}
               >
-                Sign up for free
+                Start free trial
               </Button>
             </p>
           </div>

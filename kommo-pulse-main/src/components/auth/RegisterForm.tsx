@@ -76,15 +76,15 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-center">
-          Get Started Free
+          Start Free Trial
         </CardTitle>
         <p className="text-sm text-muted-foreground text-center">
-          Start your 14-day free trial today
+          Start your 14-day Enterprise trial today
         </p>
         <div className="flex justify-center">
           <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
             <CheckCircle className="w-3 h-3 mr-1" />
-            14-day free trial
+            14-day Enterprise trial
           </Badge>
         </div>
       </CardHeader>
@@ -210,7 +210,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
             ) : (
               <>
                 <UserPlus className="mr-2 h-4 w-4" />
-                Start Free Trial
+                Start Enterprise Trial
               </>
             )}
           </Button>
@@ -232,7 +232,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
 
           <div className="text-xs text-muted-foreground text-center space-y-1">
             <p>By signing up, you agree to our Terms of Service and Privacy Policy.</p>
-            <p>No credit card required for the free trial.</p>
+            <p>No credit card required for the Enterprise trial.</p>
           </div>
         </form>
       </CardContent>

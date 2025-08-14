@@ -15,7 +15,7 @@ interface UpgradePromptProps {
 
 export const UpgradePrompt: React.FC<UpgradePromptProps> = ({ 
   error, 
-  currentPlan = 'FREE',
+  currentPlan = 'ENTERPRISE',
   onRetry 
 }) => {
   const navigate = useNavigate();
@@ -118,7 +118,7 @@ export const UpgradePrompt: React.FC<UpgradePromptProps> = ({
                    : 'This feature requires a premium subscription. Upgrade to unlock full access.'
                  }
                </CardDescription>
-              {currentPlan && currentPlan !== 'FREE' && (
+              {currentPlan && currentPlan === 'ENTERPRISE' && (
                 <Badge variant="secondary" className="mt-3">
                   Current Plan: {currentPlan}
                 </Badge>

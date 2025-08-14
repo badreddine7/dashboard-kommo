@@ -247,22 +247,18 @@ async function getPlanTypeFromPriceId(priceId) {
       
       // Try to infer from product name
       const productName = product.name.toLowerCase();
-      if (productName.includes('professional')) {
-        console.log('Inferred PROFESSIONAL from product name');
-        return 'PROFESSIONAL';
-      }
       if (productName.includes('enterprise')) {
         console.log('Inferred ENTERPRISE from product name');
         return 'ENTERPRISE';
       }
     }
     
-    console.log('No plan type found, defaulting to FREE');
-    return 'FREE';
+    console.log('No plan type found, defaulting to ENTERPRISE');
+    return 'ENTERPRISE';
   } catch (error) {
     console.error('Error fetching price details from Stripe:', error);
-    console.log('Defaulting to FREE due to error');
-    return 'FREE';
+    console.log('Defaulting to ENTERPRISE due to error');
+    return 'ENTERPRISE';
   }
 }
 

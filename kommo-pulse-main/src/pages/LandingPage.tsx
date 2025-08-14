@@ -177,77 +177,19 @@ const LandingPage = () => {
               Simple, Transparent Pricing
             </h2>
             <p className="text-xl text-gray-600">
-              Choose the plan that fits your team size and needs
+              Start with a 14-day free trial. No credit card required.
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <Card className="border-2 border-gray-200 bg-white shadow-lg">
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl text-gray-900">Free</CardTitle>
-                <div className="text-4xl font-bold text-gray-900">$0</div>
-                <CardDescription className="text-gray-600">Perfect for small teams getting started</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  <li className="flex items-center text-gray-700">
-                    <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-                    Up to 5 team members
-                  </li>
-                  <li className="flex items-center text-gray-700">
-                    <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-                    Basic analytics
-                  </li>
-                  <li className="flex items-center text-gray-700">
-                    <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-                    Standard reports
-                  </li>
-                </ul>
-                <Button className="w-full mt-6" variant="outline" asChild>
-                  <a href="/auth">Get Started</a>
-                </Button>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-2 border-purple-500 relative bg-white shadow-lg">
+          <div className="flex justify-center">
+            <Card className="border-2 border-purple-500 relative bg-white shadow-lg max-w-md">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <Badge className="bg-purple-500 text-white">Most Popular</Badge>
+                <Badge className="bg-purple-500 text-white">Enterprise Plan</Badge>
               </div>
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl text-gray-900">Professional</CardTitle>
-                <div className="text-4xl font-bold text-gray-900">$29</div>
-                <CardDescription className="text-gray-600">For growing teams and businesses</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  <li className="flex items-center text-gray-700">
-                    <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-                    Up to 25 team members
-                  </li>
-                  <li className="flex items-center text-gray-700">
-                    <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-                    Advanced analytics
-                  </li>
-                  <li className="flex items-center text-gray-700">
-                    <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-                    Custom reports
-                  </li>
-                  <li className="flex items-center text-gray-700">
-                    <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-                    Priority support
-                  </li>
-                </ul>
-                <Button className="w-full mt-6" asChild>
-                  <a href="/auth">Start Free Trial</a>
-                </Button>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-2 border-gray-200 bg-white shadow-lg">
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl text-gray-900">Enterprise</CardTitle>
                 <div className="text-4xl font-bold text-gray-900">$99</div>
-                <CardDescription className="text-gray-600">For large organizations</CardDescription>
+                <CardDescription className="text-gray-600">per month after 14-day free trial</CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3">
@@ -257,19 +199,27 @@ const LandingPage = () => {
                   </li>
                   <li className="flex items-center text-gray-700">
                     <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-                    Advanced features
+                    Advanced analytics & reporting
                   </li>
                   <li className="flex items-center text-gray-700">
                     <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-                    Custom integrations
+                    Custom integrations & API access
                   </li>
                   <li className="flex items-center text-gray-700">
                     <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-                    24/7 support
+                    White-label options
+                  </li>
+                  <li className="flex items-center text-gray-700">
+                    <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
+                    Priority support
+                  </li>
+                  <li className="flex items-center text-gray-700">
+                    <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
+                    14-day free trial
                   </li>
                 </ul>
-                <Button className="w-full mt-6" variant="outline" asChild>
-                  <a href="/auth">Contact Sales</a>
+                <Button className="w-full mt-6" asChild>
+                  <a href="/auth">Start Free Trial</a>
                 </Button>
               </CardContent>
             </Card>

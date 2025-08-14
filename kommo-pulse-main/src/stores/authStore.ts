@@ -160,8 +160,10 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       refreshToken: async () => {
-        const { tokens } = get();
-        if (!tokens?.refreshToken) {
+        const { tokens, isAuthenticated } = get();
+        
+        // Don't try to refresh if user is not authenticated
+        if (!isAuthenticated || !tokens?.refreshToken) {
           throw new Error('No refresh token available');
         }
 
@@ -296,7 +298,18 @@ function setupAxiosInterceptor(accessToken: string) {
     async (error) => {
       const originalRequest = error.config;
       
-      if (error.response?.status === 401 && !originalRequest._retry) {
+      // Only attempt token refresh if:
+      // 1. Status is 401 (Unauthorized)
+      // 2. Request hasn't been retried yet
+      // 3. User is authenticated
+      // 4. Request is not to auth endpoints (to avoid infinite loops)
+      if (error.response?.status === 401 && 
+          !originalRequest._retry && 
+          useAuthStore.getState().isAuthenticated &&
+          !originalRequest.url?.includes('/auth/refresh') &&
+          !originalRequest.url?.includes('/auth/login') &&
+          !originalRequest.url?.includes('/auth/register')) {
+        
         originalRequest._retry = true;
         
         try {

@@ -149,7 +149,7 @@ function initializeTables() {
     `CREATE TABLE IF NOT EXISTS subscriptions (
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL,
-      plan_type TEXT NOT NULL CHECK(plan_type IN ('FREE', 'PROFESSIONAL', 'ENTERPRISE')),
+      plan_type TEXT NOT NULL CHECK(plan_type IN ('ENTERPRISE')),
       status TEXT NOT NULL CHECK(status IN ('ACTIVE', 'CANCELLED', 'EXPIRED', 'TRIAL')),
       trial_ends_at DATETIME,
       current_period_start DATETIME,

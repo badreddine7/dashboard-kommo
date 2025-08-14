@@ -8,16 +8,13 @@ async function setupStripe() {
     const result = await createStripeProducts();
     
     console.log('\n✅ Stripe setup completed successfully!');
-    console.log('\n📋 Generated Price IDs:');
-    console.log(`   STRIPE_PRICE_ID_PROFESSIONAL=${result.professional.priceId}`);
+    console.log('\n📋 Generated Price ID:');
     console.log(`   STRIPE_PRICE_ID_ENTERPRISE=${result.enterprise.priceId}`);
     
-    console.log('\n📋 Generated Product IDs:');
-    console.log(`   STRIPE_PRODUCT_ID_PROFESSIONAL=${result.professional.productId}`);
+    console.log('\n📋 Generated Product ID:');
     console.log(`   STRIPE_PRODUCT_ID_ENTERPRISE=${result.enterprise.productId}`);
     
-    console.log('\n💡 Add these environment variables to your .env file:');
-    console.log('   STRIPE_PRICE_ID_PROFESSIONAL=' + result.professional.priceId);
+    console.log('\n💡 Add this environment variable to your .env file:');
     console.log('   STRIPE_PRICE_ID_ENTERPRISE=' + result.enterprise.priceId);
     
     console.log('\n🎉 Stripe is now ready for subscription management!');

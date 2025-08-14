@@ -122,187 +122,186 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
   // Special success view for payment completion
   if (showPaymentSuccess && paymentDetails) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
+      <div className="min-h-screen bg-background">
         {/* Header */}
-        <header className="bg-white/80 backdrop-blur-sm border-b border-green-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <header className="bg-gradient-card shadow-elegant border-b border-border/50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <BarChart3 className="h-6 w-6 text-green-600" />
+              <div className="flex items-center gap-4">
+                <div>
+                  <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                    Payment Successful
+                  </h1>
+                  <p className="text-muted-foreground mt-1">
+                    Welcome to {paymentDetails.plan} - Your account has been upgraded
+                  </p>
                 </div>
-                <h1 className="text-xl font-bold text-gray-900">Dashboard++</h1>
               </div>
               <UserMenu />
             </div>
           </div>
         </header>
 
-        {/* Success Content */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Main Success Card */}
-          <div className="bg-white rounded-2xl shadow-xl border border-green-200 overflow-hidden">
-            {/* Success Header */}
-            <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-8 py-12 text-center text-white">
-              <div className="mx-auto w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mb-6">
-                <Sparkles className="h-12 w-12" />
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Success Card */}
+          <div className="bg-gradient-card shadow-elegant border border-border rounded-xl p-8 mb-8">
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="h-8 w-8 text-green-600" />
               </div>
-              <h1 className="text-4xl font-bold mb-4">
+              <h2 className="text-2xl font-bold text-foreground mb-2">
                 🎉 Welcome to {paymentDetails.plan}!
-              </h1>
-              <p className="text-xl text-green-100 max-w-2xl mx-auto">
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
                 Your payment was successful and your account has been upgraded. 
                 You now have access to all premium features and enhanced analytics.
               </p>
             </div>
 
-            {/* Success Details */}
-            <div className="px-8 py-8">
-              {/* Status Indicators */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="text-center p-6 bg-green-50 rounded-xl border border-green-200">
-                  <CheckCircle2 className="h-8 w-8 text-green-600 mx-auto mb-3" />
-                  <h3 className="font-semibold text-green-800 mb-1">Payment Confirmed</h3>
-                  <p className="text-sm text-green-600">Your payment has been processed successfully</p>
-                </div>
-                <div className="text-center p-6 bg-blue-50 rounded-xl border border-blue-200">
-                  <Users className="h-8 w-8 text-blue-600 mx-auto mb-3" />
-                  <h3 className="font-semibold text-blue-800 mb-1">Account Upgraded</h3>
-                  <p className="text-sm text-blue-600">You now have access to premium features</p>
-                </div>
-                <div className="text-center p-6 bg-purple-50 rounded-xl border border-purple-200">
-                  <BarChart3 className="h-8 w-8 text-purple-600 mx-auto mb-3" />
-                  <h3 className="font-semibold text-purple-800 mb-1">Analytics Active</h3>
-                  <p className="text-sm text-purple-600">Enhanced reporting is now available</p>
-                </div>
+            {/* Status Indicators */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-card border border-border rounded-lg p-6 text-center">
+                <CheckCircle2 className="h-8 w-8 text-green-600 mx-auto mb-3" />
+                <h3 className="font-semibold text-foreground mb-1">Payment Confirmed</h3>
+                <p className="text-sm text-muted-foreground">Your payment has been processed successfully</p>
               </div>
+              <div className="bg-card border border-border rounded-lg p-6 text-center">
+                <Users className="h-8 w-8 text-blue-600 mx-auto mb-3" />
+                <h3 className="font-semibold text-foreground mb-1">Account Upgraded</h3>
+                <p className="text-sm text-muted-foreground">You now have access to premium features</p>
+              </div>
+              <div className="bg-card border border-border rounded-lg p-6 text-center">
+                <BarChart3 className="h-8 w-8 text-purple-600 mx-auto mb-3" />
+                <h3 className="font-semibold text-foreground mb-1">Analytics Active</h3>
+                <p className="text-sm text-muted-foreground">Enhanced reporting is now available</p>
+              </div>
+            </div>
 
-              {/* What's New Section */}
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-                  What's New with {paymentDetails.plan}
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <CheckCircle2 className="h-3 w-3 text-green-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900">Advanced Analytics</h4>
-                        <p className="text-sm text-gray-600">Get deeper insights into your sales performance</p>
-                      </div>
+            {/* What's New Section */}
+            <div className="mb-8">
+              <h3 className="text-xl font-bold text-foreground mb-6 text-center">
+                What's New with {paymentDetails.plan}
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <CheckCircle2 className="h-3 w-3 text-green-600" />
                     </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <CheckCircle2 className="h-3 w-3 text-green-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900">Real-time Reports</h4>
-                        <p className="text-sm text-gray-600">Monitor your team's performance in real-time</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <CheckCircle2 className="h-3 w-3 text-green-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900">Custom Dashboards</h4>
-                        <p className="text-sm text-gray-600">Create personalized views for your team</p>
-                      </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground">Advanced Analytics</h4>
+                      <p className="text-sm text-muted-foreground">Get deeper insights into your sales performance</p>
                     </div>
                   </div>
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <CheckCircle2 className="h-3 w-3 text-green-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900">Priority Support</h4>
-                        <p className="text-sm text-gray-600">Get faster response times from our support team</p>
-                      </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <CheckCircle2 className="h-3 w-3 text-green-600" />
                     </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <CheckCircle2 className="h-3 w-3 text-green-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900">Export Capabilities</h4>
-                        <p className="text-sm text-gray-600">Download reports and data for external analysis</p>
-                      </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground">Real-time Reports</h4>
+                      <p className="text-sm text-muted-foreground">Monitor your team's performance in real-time</p>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <CheckCircle2 className="h-3 w-3 text-green-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900">API Access</h4>
-                        <p className="text-sm text-gray-600">Integrate with your existing tools and workflows</p>
-                      </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <CheckCircle2 className="h-3 w-3 text-green-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground">Custom Dashboards</h4>
+                      <p className="text-sm text-muted-foreground">Create personalized views for your team</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <CheckCircle2 className="h-3 w-3 text-green-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground">Priority Support</h4>
+                      <p className="text-sm text-muted-foreground">Get faster response times from our support team</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <CheckCircle2 className="h-3 w-3 text-green-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground">Export Capabilities</h4>
+                      <p className="text-sm text-muted-foreground">Download reports and data for external analysis</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <CheckCircle2 className="h-3 w-3 text-green-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground">API Access</h4>
+                      <p className="text-sm text-muted-foreground">Integrate with your existing tools and workflows</p>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button 
-                  onClick={() => {
-                    setShowPaymentSuccess(false);
-                    setPaymentDetails(null);
-                    // Clean URL
-                    const newUrl = new URL(window.location.href);
-                    newUrl.searchParams.delete('payment');
-                    newUrl.searchParams.delete('plan');
-                    newUrl.searchParams.delete('upgraded');
-                    newUrl.searchParams.delete('welcome');
-                    window.history.replaceState({}, '', newUrl.toString());
-                  }}
-                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
-                >
-                  <BarChart3 className="h-5 w-5 mr-2" />
-                  Go to Dashboard
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={() => navigate('/billing')}
-                  className="px-8 py-3 text-lg"
-                >
-                  <CreditCard className="h-5 w-5 mr-2" />
-                  Manage Billing
-                </Button>
-              </div>
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                onClick={() => {
+                  setShowPaymentSuccess(false);
+                  setPaymentDetails(null);
+                  // Clean URL
+                  const newUrl = new URL(window.location.href);
+                  newUrl.searchParams.delete('payment');
+                  newUrl.searchParams.delete('plan');
+                  newUrl.searchParams.delete('upgraded');
+                  newUrl.searchParams.delete('welcome');
+                  window.history.replaceState({}, '', newUrl.toString());
+                }}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                <BarChart3 className="h-5 w-5 mr-2" />
+                Go to Dashboard
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => navigate('/billing')}
+              >
+                <CreditCard className="h-5 w-5 mr-2" />
+                Manage Billing
+              </Button>
             </div>
           </div>
 
           {/* Quick Stats Preview */}
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-gradient-card shadow-elegant border border-border rounded-xl p-6">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                   <Users className="h-4 w-4 text-blue-600" />
                 </div>
-                <h3 className="font-semibold text-gray-900">Team Analytics</h3>
+                <h3 className="font-semibold text-foreground">Team Analytics</h3>
               </div>
-              <p className="text-sm text-gray-600">Monitor your entire team's performance with advanced metrics and insights.</p>
+              <p className="text-sm text-muted-foreground">Monitor your entire team's performance with advanced metrics and insights.</p>
             </div>
-            <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200">
+            <div className="bg-gradient-card shadow-elegant border border-border rounded-xl p-6">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                   <Target className="h-4 w-4 text-green-600" />
                 </div>
-                <h3 className="font-semibold text-gray-900">Performance Tracking</h3>
+                <h3 className="font-semibold text-foreground">Performance Tracking</h3>
               </div>
-              <p className="text-sm text-gray-600">Track conversion rates, cycle times, and win rates with detailed analytics.</p>
+              <p className="text-sm text-muted-foreground">Track conversion rates, cycle times, and win rates with detailed analytics.</p>
             </div>
-            <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200">
+            <div className="bg-gradient-card shadow-elegant border border-border rounded-xl p-6">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                   <TrendingUp className="h-4 w-4 text-purple-600" />
                 </div>
-                <h3 className="font-semibold text-gray-900">Growth Insights</h3>
+                <h3 className="font-semibold text-foreground">Growth Insights</h3>
               </div>
-              <p className="text-sm text-gray-600">Identify trends and opportunities to optimize your sales process.</p>
+              <p className="text-sm text-muted-foreground">Identify trends and opportunities to optimize your sales process.</p>
             </div>
           </div>
         </div>

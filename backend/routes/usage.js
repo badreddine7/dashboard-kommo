@@ -12,7 +12,7 @@ router.get('/', authenticate, async (req, res) => {
     
     // Get user's subscription to determine limits
     const subscription = await dbHelpers.getUserSubscription(userId);
-    const planType = subscription?.plan_type || 'FREE';
+    const planType = subscription?.plan_type || 'ENTERPRISE';
     const planLimits = SUBSCRIPTION_TIERS[planType];
 
     // Get today's date for API calls
