@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { DashboardProvider } from "@/contexts/DashboardContext";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -12,49 +13,54 @@ import NotFound from "./pages/NotFound";
 import { Auth } from "./pages/Auth";
 import PricingPage from "./components/PricingPage";
 import CustomerPortal from "./components/CustomerPortal";
+import LandingPage from "./pages/LandingPage";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <AuthProvider>
-        <DashboardProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/pricing" element={
-                  <ProtectedRoute>
-                    <PricingPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/billing" element={
-                  <ProtectedRoute>
-                    <CustomerPortal />
-                  </ProtectedRoute>
-                } />
-                <Route path="/" element={
-                  <ProtectedRoute>
-                    <Index />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard" element={
-                  <ProtectedRoute>
-                    <Index />
-                  </ProtectedRoute>
-                } />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </DashboardProvider>
-      </AuthProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+  <HelmetProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <AuthProvider>
+          <DashboardProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
+                  {/* Public Landing Page */}
+                  <Route path="/" element={<LandingPage />} />
+                  
+                  {/* Auth Routes */}
+                  <Route path="/auth" element={<Auth />} />
+                  
+                  {/* Protected Routes */}
+                  <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                      <Index />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/pricing" element={
+                    <ProtectedRoute>
+                      <PricingPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/billing" element={
+                    <ProtectedRoute>
+                      <CustomerPortal />
+                    </ProtectedRoute>
+                  } />
+                  
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </TooltipProvider>
+          </DashboardProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </HelmetProvider>
 );
 
 export default App;
