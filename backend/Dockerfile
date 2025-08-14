@@ -1,27 +1,43 @@
-# Use Node.js 18 LTS
-FROM node:18-alpine
+# Build stage
+FROM node:20 AS builder
 
 # Set working directory
 WORKDIR /app
 
-# Install dependencies for native modules
-RUN apk add --no-cache python3 make g++
-
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install all dependencies (including dev dependencies for building)
+RUN npm install
 
 # Copy source code
 COPY . .
+
+# Production stage
+FROM node:20-slim
+
+# Install only runtime dependencies
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files and node_modules from builder stage
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
+
+# Copy built application from builder stage
+COPY --from=builder /app .
 
 # Create logs directory
 RUN mkdir -p logs
 
 # Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
+RUN groupadd -r nodejs && useradd -r -g nodejs nodejs
 
 # Change ownership of the app directory
 RUN chown -R nodejs:nodejs /app

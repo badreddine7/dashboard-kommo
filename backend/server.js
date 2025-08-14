@@ -27,7 +27,7 @@ const logger = {
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
     ? [process.env.FRONTEND_URL, 'https://yourdomain.com'] 
-    : ['http://localhost:5173', 'http://localhost:8080'],
+    : ['http://localhost:5173', 'http://localhost:8080', 'http://localhost'],
   credentials: true,
   optionsSuccessStatus: 200
 };

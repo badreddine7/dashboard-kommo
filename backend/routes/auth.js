@@ -315,24 +315,8 @@ router.post('/validate-kommo-account', async (req, res) => {
       });
     }
 
-    // Check if tokens are valid (not expired)
-    const now = new Date();
-    const expiresAt = new Date(tokens.expires_at);
-    const isExpired = expiresAt <= now;
-
-    if (isExpired) {
-      console.log('⚠️ Tokens expired for account:', cleanDomain);
-      return res.status(400).json({
-        success: false,
-        message: 'Kommo account tokens have expired',
-        error: 'TOKENS_EXPIRED',
-        details: {
-          account_domain: cleanDomain,
-          expires_at: tokens.expires_at,
-          suggestion: 'Please re-authenticate your Kommo account'
-        }
-      });
-    }
+    // Note: We don't check token expiration here
+    // Tokens will be refreshed automatically when the user visits the dashboard
 
     console.log('✅ Kommo account validated successfully:', cleanDomain);
     res.json({
