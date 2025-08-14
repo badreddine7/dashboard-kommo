@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import Dashboard from '@/components/Dashboard';
+import GeneralDashboard from '@/components/GeneralDashboard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -139,7 +139,7 @@ const Index = () => {
     // Use the validated account, which should now be updated in the user profile
     const accountToUse = account || user?.kommo_account || '';
     console.log('🚀 Loading Dashboard with account:', accountToUse);
-    return <Dashboard account={accountToUse} />;
+    return <GeneralDashboard account={accountToUse} />;
   }
 
   return (

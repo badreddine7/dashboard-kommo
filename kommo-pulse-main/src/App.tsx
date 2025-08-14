@@ -14,6 +14,8 @@ import { Auth } from "./pages/Auth";
 import PricingPage from "./components/PricingPage";
 import CustomerPortal from "./components/CustomerPortal";
 import LandingPage from "./pages/LandingPage";
+import GeneralDashboard from "./components/GeneralDashboard";
+import Dashboard from "./components/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +40,16 @@ const App = () => (
                   <Route path="/dashboard" element={
                     <ProtectedRoute>
                       <Index />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/team" element={
+                    <ProtectedRoute>
+                      <GeneralDashboard account="" />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/:repId" element={
+                    <ProtectedRoute>
+                      <Dashboard account="" />
                     </ProtectedRoute>
                   } />
                   <Route path="/pricing" element={

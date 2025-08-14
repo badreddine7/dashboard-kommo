@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { 
   TrendingUp, 
   Target, 
@@ -49,10 +49,15 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { refreshSubscription, api } = useAuthStore();
+  const { repId } = useParams<{ repId: string }>();
+  const location = useLocation();
+  const accountFromState = location.state?.account;
+  
   // Use the account prop directly since we ensure it's updated in the user profile
-  const { data, loading, error, refetch } = useAnalytics(account);
+  const accountToUse = account || accountFromState || user?.kommo_account || '';
+  const { data, loading, error, refetch } = useAnalytics(accountToUse);
   const { settings } = useDashboard();
-  const [selectedUser, setSelectedUser] = useState<string>('');
+  const [selectedUser, setSelectedUser] = useState<string>(repId || '');
 
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [paymentDetails, setPaymentDetails] = useState<{
@@ -434,18 +439,18 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => window.location.reload()}
+                onClick={() => navigate('/team')}
                 className="flex items-center gap-2"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Back
+                Back to Team
               </Button>
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                  CRM Analytics Dashboard
+                  Sales Rep Dashboard
                 </h1>
                 <p className="text-muted-foreground mt-1">
-                  Performance insights for {account || user?.kommo_account || 'your account'}
+                  Performance insights for {selectedUser ? `Sales Rep ${selectedUser}` : 'selected representative'}
                 </p>
                 {settings.autoRefresh && (
                   <p className="text-xs text-muted-foreground mt-1">
