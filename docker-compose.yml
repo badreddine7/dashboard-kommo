@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: kommo-pulse-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend/logs:/app/logs
+      - ./backend/saas.db:/app/saas.db
+      - ./backend/backups:/app/backups
+    networks:
+      - kommo-pulse-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build: ./kommo-pulse-main
+    container_name: kommo-pulse-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - kommo-pulse-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Redis for caching (recommended for high traffic)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: kommo-pulse-redis
+  #   restart: unless-stopped
+  #   command: redis-server --appendonly yes
+  #   volumes:
+  #     - redis_data:/data
+  #   networks:
+  #     - kommo-pulse-network
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+networks:
+  kommo-pulse-network:
+    driver: bridge
+
+# volumes:
+#   redis_data:
