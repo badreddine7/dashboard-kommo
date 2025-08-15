@@ -39,6 +39,9 @@ import { useAnalytics } from '../hooks/useAnalytics';
 import { useDashboard } from '../contexts/DashboardContext';
 import { Button } from './ui/button';
 import UsageTracker from './UsageTracker';
+import CallsCard from './CallsCard';
+import PerformanceInsightsCard from './PerformanceInsightsCard';
+import ReportsSection from './ReportsSection';
 import { UpgradePrompt } from './UpgradePrompt';
 
 interface DashboardProps {
@@ -533,10 +536,16 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
           </div>
         </section>
 
-        {/* Usage Tracker */}
-        <section className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Usage Tracker, Calls Card, and Performance Insights */}
+        <section className="grid grid-cols-1 lg:grid-cols-4 gap-2">
           <div className="lg:col-span-1">
             <UsageTracker />
+          </div>
+          <div className="lg:col-span-1">
+            <CallsCard calls={currentUser.calls} />
+          </div>
+          <div className="lg:col-span-1">
+            <PerformanceInsightsCard repData={currentUser} />
           </div>
         </section>
 
@@ -802,6 +811,11 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
             />
           </section>
         )}
+
+        {/* Reports Section - At the bottom */}
+        <section className="mt-12">
+          <ReportsSection repData={currentUser} />
+        </section>
       </main>
     </div>
   );

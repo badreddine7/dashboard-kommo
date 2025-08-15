@@ -100,27 +100,57 @@ const GeneralDashboard: React.FC<GeneralDashboardProps> = ({ account }) => {
 
   useEffect(() => {
     if (data?.reps) {
-      // Transform the data into our SalesRep format
-      const transformedReps: SalesRep[] = data.reps.map((rep: any, index: number) => ({
-        id: rep.id || `rep-${index}`,
-        name: rep.name || `Sales Rep ${index + 1}`,
-        email: rep.email || `rep${index + 1}@company.com`,
-        avatar: rep.avatar,
-        performance: {
-          deals_closed: rep.deals_closed || Math.floor(Math.random() * 50) + 10,
-          total_revenue: rep.total_revenue || Math.floor(Math.random() * 100000) + 50000,
-          avg_deal_size: rep.avg_deal_size || Math.floor(Math.random() * 5000) + 2000,
-          conversion_rate: rep.conversion_rate || (Math.random() * 0.3 + 0.1),
-          activities_count: rep.activities_count || Math.floor(Math.random() * 500) + 100,
-          tasks_completed: rep.tasks_completed || Math.floor(Math.random() * 200) + 50,
-          response_time: rep.response_time || Math.floor(Math.random() * 24) + 2,
-          lead_quality_score: rep.lead_quality_score || (Math.random() * 0.4 + 0.6)
-        },
-        ranking: index + 1,
-        trend: ['up', 'down', 'stable'][Math.floor(Math.random() * 3)] as 'up' | 'down' | 'stable',
-        status: 'active' as const,
-        last_activity: new Date(Date.now() - Math.random() * 86400000).toISOString()
-      }));
+      // Transform the real data from aggregate function into our SalesRep format
+      const transformedReps: SalesRep[] = data.reps.map((rep: any, index: number) => {
+        // Calculate total revenue from won leads and average deal size
+        const totalRevenue = (rep.won_leads || 0) * (rep.avg_deal_size || 0);
+        
+        // Calculate total activities from events and messages
+        const totalActivities = (rep.events_count || 0) + 
+                               (rep.messages?.messages || 0) + 
+                               (rep.messages?.emails || 0) + 
+                               (rep.messages?.sms || 0) +
+                               (rep.notes_stats?.total || 0);
+
+        // Determine trend based on win rate and performance
+        let trend: 'up' | 'down' | 'stable' = 'stable';
+        if (rep.win_rate > 0.6) trend = 'up';
+        else if (rep.win_rate < 0.3) trend = 'down';
+
+                 // Calculate last activity from heatmap data (most recent activity)
+         let lastActivity = new Date().toISOString(); // fallback
+         if (rep.heatmap && Object.keys(rep.heatmap).length > 0) {
+           // Get the most recent date from heatmap
+           const activityDates = Object.keys(rep.heatmap);
+           if (activityDates.length > 0) {
+             const mostRecentDate = activityDates.sort().pop(); // Get the latest date
+             if (mostRecentDate) {
+               lastActivity = new Date(mostRecentDate).toISOString();
+             }
+           }
+         }
+
+         return {
+           id: rep.user_id || `rep-${index}`,
+           name: rep.name || `Sales Rep ${index + 1}`,
+           email: `rep${index + 1}@company.com`, // Email not provided by Kommo API
+           avatar: rep.avatar,
+           performance: {
+             deals_closed: rep.won_leads || 0,
+             total_revenue: totalRevenue,
+             avg_deal_size: rep.avg_deal_size || 0,
+             conversion_rate: rep.win_rate || 0,
+             activities_count: totalActivities,
+             tasks_completed: rep.completed_tasks || 0,
+             response_time: rep.avg_cycle_days || 0,
+             lead_quality_score: rep.win_rate || 0
+           },
+           ranking: index + 1,
+           trend: trend,
+           status: 'active' as const,
+           last_activity: lastActivity
+         };
+      });
 
       // Sort by selected criteria
       const sortedReps = [...transformedReps].sort((a, b) => {
@@ -146,13 +176,20 @@ const GeneralDashboard: React.FC<GeneralDashboardProps> = ({ account }) => {
 
       setSalesReps(rankedReps);
 
-      // Calculate overall stats
+      // Calculate overall stats from real data
       const totalRevenue = rankedReps.reduce((sum, rep) => sum + rep.performance.total_revenue, 0);
       const totalDeals = rankedReps.reduce((sum, rep) => sum + rep.performance.deals_closed, 0);
-      const avgConversionRate = rankedReps.reduce((sum, rep) => sum + rep.performance.conversion_rate, 0) / rankedReps.length;
+      const avgConversionRate = rankedReps.length > 0 
+        ? rankedReps.reduce((sum, rep) => sum + rep.performance.conversion_rate, 0) / rankedReps.length 
+        : 0;
       const totalActivities = rankedReps.reduce((sum, rep) => sum + rep.performance.activities_count, 0);
       const topPerformer = rankedReps[0]?.name || '';
       const mostImproved = rankedReps.find(rep => rep.trend === 'up')?.name || rankedReps[0]?.name || '';
+
+      // Calculate team growth based on total leads vs won leads
+      const totalLeads = data.reps.reduce((sum: number, rep: any) => sum + (rep.total_leads || 0), 0);
+      const totalWonLeads = data.reps.reduce((sum: number, rep: any) => sum + (rep.won_leads || 0), 0);
+      const teamGrowth = totalLeads > 0 ? (totalWonLeads / totalLeads) * 100 : 0;
 
       setOverallStats({
         totalRevenue,
@@ -161,7 +198,7 @@ const GeneralDashboard: React.FC<GeneralDashboardProps> = ({ account }) => {
         totalActivities,
         topPerformer,
         mostImproved,
-        teamGrowth: 12.5 // Mock growth percentage
+        teamGrowth: Number(teamGrowth.toFixed(1))
       });
     }
   }, [data, sortBy]);
@@ -504,10 +541,24 @@ const GeneralDashboard: React.FC<GeneralDashboardProps> = ({ account }) => {
                   </Badge>
                 </div>
 
-                {/* Last Activity */}
-                <div className="text-xs text-muted-foreground">
-                  Last active: {new Date(rep.last_activity).toLocaleDateString()}
-                </div>
+                                 {/* Last Activity */}
+                 <div className="text-xs text-muted-foreground">
+                   Last active: {(() => {
+                     const lastActivityDate = new Date(rep.last_activity);
+                     const now = new Date();
+                     const diffInDays = Math.floor((now.getTime() - lastActivityDate.getTime()) / (1000 * 60 * 60 * 24));
+                     
+                     if (diffInDays === 0) {
+                       return 'Today';
+                     } else if (diffInDays === 1) {
+                       return 'Yesterday';
+                     } else if (diffInDays < 7) {
+                       return `${diffInDays} days ago`;
+                     } else {
+                       return lastActivityDate.toLocaleDateString();
+                     }
+                   })()}
+                 </div>
               </CardContent>
             </Card>
           ))}

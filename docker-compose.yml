@@ -13,6 +13,8 @@ services:
     volumes:
       - ./backend/logs:/app/logs
       - ./backend/saas.db:/app/saas.db
+      - ./backend/saas.db-shm:/app/saas.db-shm
+      - ./backend/saas.db-wal:/app/saas.db-wal
       - ./backend/backups:/app/backups
     networks:
       - kommo-pulse-network

@@ -29,6 +29,11 @@ interface RepData {
     emails: number;
     sms: number;
   };
+  calls: {
+    incoming: number;
+    outgoing: number;
+    total: number;
+  };
   events_count: number;
   heatmap: Record<string, number>;
   rep_fields_stats: {

@@ -39,6 +39,11 @@ interface RepData {
     emails: number;
     sms: number;
   };
+  calls: {
+    incoming: number;
+    outgoing: number;
+    total: number;
+  };
   sales_funnel: {
     sql_leads: number;
     sql_rate: number;

@@ -59,10 +59,50 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
       db.run('PRAGMA temp_store=MEMORY', (err) => {
         if (err) logger.warn('Failed to set temp store', { error: err.message });
       });
+      
+      // Force checkpoint every 1000 pages or on close
+      db.run('PRAGMA wal_checkpoint(TRUNCATE)', (err) => {
+        if (err) {
+          logger.warn('Failed to checkpoint WAL', { error: err.message });
+        } else {
+          logger.info('WAL checkpoint completed');
+        }
+      });
     }
     
     initializeTables();
   }
+});
+
+// Graceful shutdown handler
+process.on('SIGINT', () => {
+  logger.info('Shutting down database gracefully...');
+  db.run('PRAGMA wal_checkpoint(TRUNCATE)', (err) => {
+    if (err) logger.warn('Failed to checkpoint WAL on shutdown', { error: err.message });
+    db.close((err) => {
+      if (err) {
+        logger.error('Error closing database', { error: err.message });
+      } else {
+        logger.info('Database closed successfully');
+      }
+      process.exit(0);
+    });
+  });
+});
+
+process.on('SIGTERM', () => {
+  logger.info('Shutting down database gracefully...');
+  db.run('PRAGMA wal_checkpoint(TRUNCATE)', (err) => {
+    if (err) logger.warn('Failed to checkpoint WAL on shutdown', { error: err.message });
+    db.close((err) => {
+      if (err) {
+        logger.error('Error closing database', { error: err.message });
+      } else {
+        logger.info('Database closed successfully');
+      }
+      process.exit(0);
+    });
+  });
 });
 
 // Database backup functionality
@@ -274,6 +314,16 @@ const dbHelpers = {
     });
   },
 
+  getAllUsers: () => {
+    return new Promise((resolve, reject) => {
+      const sql = 'SELECT * FROM users';
+      db.all(sql, (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
+  },
+
   updateUser: (id, updates) => {
     return new Promise((resolve, reject) => {
       const fields = Object.keys(updates).map(key => `${key} = ?`).join(', ');
@@ -453,6 +503,21 @@ const dbHelpers = {
   // Database maintenance
   createBackup,
   cleanupOldBackups,
+  
+  // Force checkpoint WAL file
+  checkpointWAL: () => {
+    return new Promise((resolve, reject) => {
+      db.run('PRAGMA wal_checkpoint(TRUNCATE)', (err) => {
+        if (err) {
+          logger.error('Failed to checkpoint WAL', { error: err.message });
+          reject(err);
+        } else {
+          logger.info('WAL checkpoint completed successfully');
+          resolve();
+        }
+      });
+    });
+  },
   
   // Get database stats
   getDatabaseStats: () => {

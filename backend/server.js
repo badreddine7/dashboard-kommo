@@ -25,9 +25,21 @@ const logger = {
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? [process.env.FRONTEND_URL, 'https://yourdomain.com'] 
-    : ['http://localhost:5173', 'http://localhost:8080', 'http://localhost'],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = process.env.NODE_ENV === 'production' 
+      ? [process.env.FRONTEND_URL, 'https://yourdomain.com'] 
+      : ['http://localhost:5173', 'http://localhost:8080', 'http://localhost', 'http://127.0.0.1:8080'];
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -36,6 +48,7 @@ const corsOptions = {
 const authRoutes = require('./routes/auth');
 const stripeRoutes = require('./routes/stripe');
 const usageRoutes = require('./routes/usage');
+const reportsRoutes = require('./routes/reports');
 const { authenticate, requireFeature, requireUsageLimit } = require('./middleware/auth');
 const { dbHelpers } = require('./database');
 const { syncSubscriptionStatus } = require('./services/webhooks');
@@ -185,7 +198,7 @@ async function aggregate(accountId, token) {
   const since = Date.now() - edges;
   const sinceTimestamp = Math.floor(since / 1000);
 
-  const [users, leads, tasks, events, noteEvents, messageEvents, activityEvents, customFields] = await Promise.all([
+  const [users, leads, tasks, events, noteEvents, messageEvents, activityEvents, customFields, callEvents] = await Promise.all([
     paginate(accountId, refreshedToken, 'users'),
     paginate(accountId, refreshedToken, 'leads',{ with: ['source'] }),
     paginate(accountId, refreshedToken, 'tasks'),
@@ -193,7 +206,8 @@ async function aggregate(accountId, token) {
     paginate(accountId, refreshedToken, 'events', {'filter[type]': 'common_note_added'}),
     paginate(accountId, refreshedToken, 'events', {'filter[type]': ['outgoing_mail', 'outgoing_chat_message', 'outgoing_sms']}),
     paginate(accountId, refreshedToken, 'events', {'filter[created_at][from]': sinceTimestamp}),
-    paginate_sol(accountId, refreshedToken, 'leads/','custom_fields')
+    paginate_sol(accountId, refreshedToken, 'leads/','custom_fields'),
+    paginate(accountId, refreshedToken, 'events', {'filter[type]': ['incoming_call', 'outgoing_call']})
   ]);
 
   logger.info('Data fetched successfully', { 
@@ -267,6 +281,22 @@ async function aggregate(accountId, token) {
     else if (e.type === 'outgoing_sms')         messagesByUser[uid].sms++;
   });
   logger.debug('Messages aggregated by user', { messagesByUser });
+
+  // Group calls by user
+  const callsByUser = {};
+
+  callEvents.forEach(e => {
+    const uid = e.created_by;
+    callsByUser[uid] = callsByUser[uid] || { incoming: 0, outgoing: 0, total: 0 };
+    if (e.type === 'incoming_call') {
+      callsByUser[uid].incoming++;
+      callsByUser[uid].total++;
+    } else if (e.type === 'outgoing_call') {
+      callsByUser[uid].outgoing++;
+      callsByUser[uid].total++;
+    }
+  });
+  logger.debug('Calls aggregated by user', { callsByUser });
 
   //building the heatmap data
   const heatmap = {};
@@ -487,6 +517,11 @@ async function aggregate(accountId, token) {
         emails: messagesByUser[uid]?.emails || 0,
         sms: messagesByUser[uid]?.sms || 0
       },
+      calls: {
+        incoming: callsByUser[uid]?.incoming || 0,
+        outgoing: callsByUser[uid]?.outgoing || 0,
+        total: callsByUser[uid]?.total || 0
+      },
       events_count : heatMapUserData[uid] || 0,
       heatmap : heatmap[uid] || {},
       rep_fields_stats : {
@@ -522,6 +557,17 @@ async function aggregate(accountId, token) {
 
 
 const app = express();
+// Add CORS debugging middleware
+app.use((req, res, next) => {
+  console.log('CORS Debug:', {
+    origin: req.headers.origin,
+    method: req.method,
+    url: req.url,
+    nodeEnv: process.env.NODE_ENV
+  });
+  next();
+});
+
 app.use(cors(corsOptions));
 
 // Configure body parsing - raw for webhooks, JSON for everything else
@@ -536,6 +582,9 @@ app.use('/api/stripe', stripeRoutes);
 
 // Usage tracking routes
 app.use('/api/usage', usageRoutes);
+
+// Reports routes
+app.use('/api/reports', reportsRoutes);
 
 // Endpoint for Kommo OAuth callback
 app.get('/kommo/callback', async (req, res) => {
@@ -624,7 +673,7 @@ app.get('/api/report',
     }
 
     try {
-      // Sync subscription status when user enters dashboard
+      // Sync subscription status when user enters dashboardcls
       if (req.subscription && req.subscription.stripe_subscription_id) {
         logger.info('Syncing subscription status for dashboard access', { 
           subscriptionId: req.subscription.stripe_subscription_id 
