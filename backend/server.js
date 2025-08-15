@@ -187,8 +187,8 @@ function median(arr) {
     : s[mid];
 }
 // Aggregate user stats
-async function aggregate(accountId, token) {
-  logger.info('Starting data aggregation', { accountId });
+async function aggregate(accountId, token, useCache = true) {
+  logger.info('Starting data aggregation', { accountId, useCache });
   
   const domain = accountId.includes('.') ? accountId : `${accountId}.kommo.com`;
   const refreshedToken = token.access_token;

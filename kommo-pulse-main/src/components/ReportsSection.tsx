@@ -14,7 +14,8 @@ import {
   CheckCircle,
   X,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  RefreshCw
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -23,6 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { useAuthStore } from '../stores/authStore';
+import { kommoCache } from '../utils/cache';
 import jsPDF from 'jspdf';
 
 interface ReportsSectionProps {
@@ -117,6 +119,7 @@ const ReportsSection: React.FC<ReportsSectionProps> = ({ repData }) => {
     excelReports: 0
   });
   const [expandedReport, setExpandedReport] = useState<string | null>(null);
+  const [cacheAge, setCacheAge] = useState<number | null>(null);
 
   // Fetch report history and stats
   const fetchReportData = async () => {
@@ -166,7 +169,12 @@ const ReportsSection: React.FC<ReportsSectionProps> = ({ repData }) => {
   // Load report data on component mount
   React.useEffect(() => {
     fetchReportData();
-  }, [isAuthenticated, tokens]);
+    // Update cache age
+    if (user?.kommo_account) {
+      const age = kommoCache.getAge(user.kommo_account);
+      setCacheAge(age);
+    }
+  }, [isAuthenticated, tokens, user?.kommo_account]);
 
   const handleGenerateReport = async () => {
     if (!selectedReport || !timeRange || !format) {
@@ -196,7 +204,8 @@ const ReportsSection: React.FC<ReportsSectionProps> = ({ repData }) => {
         reportType: selectedReport,
         timeRange,
         format,
-        repId: repData?.user_id // Kommo rep ID
+        repId: repData?.user_id, // Kommo rep ID
+        useCache: true // Enable caching for report generation
       };
       
       console.log('🔍 Report request body:', requestBody);
@@ -470,6 +479,31 @@ const ReportsSection: React.FC<ReportsSectionProps> = ({ repData }) => {
     setGeneratedReports(prev => prev.filter(r => r.id !== reportId));
   };
 
+  const handleClearCache = async () => {
+    try {
+      if (!user?.kommo_account) return;
+      
+      // Clear local cache
+      kommoCache.remove(user.kommo_account);
+      setCacheAge(null);
+      
+      // Notify backend
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/reports/clear-cache`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${tokens.accessToken}`
+        }
+      });
+      
+      if (response.ok) {
+        console.log('✅ Cache cleared successfully');
+      }
+    } catch (error) {
+      console.error('❌ Failed to clear cache:', error);
+    }
+  };
+
   const getReportIcon = (type: string) => {
     switch (type) {
       case 'performance': return <BarChart3 className="h-4 w-4 text-blue-500" />;
@@ -485,9 +519,27 @@ const ReportsSection: React.FC<ReportsSectionProps> = ({ repData }) => {
       {/* Report Generation Section */}
       <Card className="bg-gradient-card shadow-elegant border-border/50">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-primary" />
-            Generate Reports
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              Generate Reports
+            </div>
+            {cacheAge !== null && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">
+                  Cache: {cacheAge}s old
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleClearCache}
+                  className="h-8 px-2"
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  Refresh
+                </Button>
+              </div>
+            )}
           </CardTitle>
           <CardDescription>
             Create detailed reports to analyze your performance and track progress

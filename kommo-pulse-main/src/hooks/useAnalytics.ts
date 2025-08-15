@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api, useAuthStore } from '@/stores/authStore';
+import { kommoCache } from '@/utils/cache';
 
 interface RepData {
   user_id: string;
@@ -78,7 +79,7 @@ export const useAnalytics = (account: string) => {
   const [error, setError] = useState<string | null>(null);
   const { isAuthenticated, user } = useAuthStore();
 
-  const fetchData = async () => {
+  const fetchData = async (forceRefresh = false) => {
     if (!account) return;
     
     // Debug authentication state
@@ -98,11 +99,26 @@ export const useAnalytics = (account: string) => {
       setLoading(true);
       setError(null);
       
+      // Check cache first (unless force refresh)
+      if (!forceRefresh) {
+        const cachedData = kommoCache.get(account);
+        if (cachedData) {
+          console.log('✅ Using cached data for account:', account);
+          setData(cachedData);
+          setLoading(false);
+          return;
+        }
+      }
+      
       console.log('📡 Making API request to:', `/report?account=${account}`);
       
       // Use authenticated API instance
       const response = await api.get(`/report?account=${account}`);
       console.log('✅ Analytics response:', response.data);
+      
+      // Store in cache
+      kommoCache.set(account, response.data);
+      
       setData(response.data);
     } catch (err: any) {
       console.error('❌ Analytics fetch error:', err);
@@ -136,5 +152,8 @@ export const useAnalytics = (account: string) => {
     fetchData();
   }, [account, isAuthenticated]);
 
-  return { data, loading, error, refetch: fetchData };
+  const refetch = () => fetchData(true); // Force refresh
+  const clearCache = () => kommoCache.remove(account);
+  
+  return { data, loading, error, refetch, clearCache };
 };

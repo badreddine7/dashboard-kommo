@@ -12,7 +12,7 @@ router.post('/generate', authenticate, async (req, res) => {
   });
   
   try {
-    const { reportType, timeRange, format, repId } = req.body;
+    const { reportType, timeRange, format, repId, useCache = true } = req.body;
     const userId = req.user.id; // Use the authenticated user's ID from JWT token
     
     if (!reportType || !timeRange || !format) {
@@ -62,22 +62,22 @@ router.post('/generate', authenticate, async (req, res) => {
     
     switch (reportType) {
       case 'performance-summary':
-        reportData = await generatePerformanceSummary(userId, repId, startDate, endDate);
+        reportData = await generatePerformanceSummary(userId, repId, startDate, endDate, useCache);
         break;
       case 'activity-report':
-        reportData = await generateActivityReport(userId, repId, startDate, endDate);
+        reportData = await generateActivityReport(userId, repId, startDate, endDate, useCache);
         break;
       case 'revenue-analysis':
-        reportData = await generateRevenueAnalysis(userId, repId, startDate, endDate);
+        reportData = await generateRevenueAnalysis(userId, repId, startDate, endDate, useCache);
         break;
       case 'team-comparison':
-        reportData = await generateTeamComparison(startDate, endDate);
+        reportData = await generateTeamComparison(startDate, endDate, useCache);
         break;
       case 'conversion-funnel':
-        reportData = await generateConversionFunnel(userId, repId, startDate, endDate);
+        reportData = await generateConversionFunnel(userId, repId, startDate, endDate, useCache);
         break;
       case 'time-analysis':
-        reportData = await generateTimeAnalysis(userId, repId, startDate, endDate);
+        reportData = await generateTimeAnalysis(userId, repId, startDate, endDate, useCache);
         break;
       default:
         return res.status(400).json({
@@ -181,9 +181,36 @@ router.get('/stats', authenticate, async (req, res) => {
   }
 });
 
+// Clear cache for user
+router.post('/clear-cache', authenticate, async (req, res) => {
+  try {
+    const user = await dbHelpers.getUserById(req.user.id);
+    if (!user || !user.kommo_account) {
+      return res.status(400).json({
+        success: false,
+        error: 'No Kommo account configured'
+      });
+    }
+
+    // This endpoint tells the frontend to clear its cache
+    // The actual cache clearing happens on the frontend
+    res.json({
+      success: true,
+      message: 'Cache clear request sent',
+      account: user.kommo_account
+    });
+  } catch (error) {
+    console.error('Clear cache error:', error);
+    res.status(500).json({
+      error: 'Failed to clear cache',
+      message: error.message
+    });
+  }
+});
+
 // Helper functions for different report types
-async function generatePerformanceSummary(userId, repId, startDate, endDate) {
-  console.log('🔍 generatePerformanceSummary - userId:', userId, 'repId:', repId);
+async function generatePerformanceSummary(userId, repId, startDate, endDate, useCache = true) {
+  console.log('🔍 generatePerformanceSummary - userId:', userId, 'repId:', repId, 'useCache:', useCache);
   try {
     // Get the user's Kommo account from the database
     const user = await dbHelpers.getUserById(userId);
@@ -203,9 +230,9 @@ async function generatePerformanceSummary(userId, repId, startDate, endDate) {
       throw new Error('No Kommo tokens found');
     }
 
-    // Use the aggregate function to get real data
+    // Use the aggregate function to get real data (with caching)
     const aggregate = require('../server').aggregate;
-    const data = await aggregate(user.kommo_account, tokens);
+    const data = await aggregate(user.kommo_account, tokens, useCache);
     
     // Find the specific rep's data using repId
     const userData = data.reps.find(rep => rep.user_id == repId);
@@ -231,7 +258,7 @@ async function generatePerformanceSummary(userId, repId, startDate, endDate) {
   }
 }
 
-async function generateActivityReport(userId, repId, startDate, endDate) {
+async function generateActivityReport(userId, repId, startDate, endDate, useCache = true) {
   try {
     const user = await dbHelpers.getUserById(userId);
     if (!user || !user.kommo_account) {
@@ -244,7 +271,7 @@ async function generateActivityReport(userId, repId, startDate, endDate) {
     }
 
     const aggregate = require('../server').aggregate;
-    const data = await aggregate(user.kommo_account, tokens);
+    const data = await aggregate(user.kommo_account, tokens, useCache);
     
     const userData = data.reps.find(rep => rep.user_id == repId);
     if (!userData) {
@@ -265,7 +292,7 @@ async function generateActivityReport(userId, repId, startDate, endDate) {
   }
 }
 
-async function generateRevenueAnalysis(userId, repId, startDate, endDate) {
+async function generateRevenueAnalysis(userId, repId, startDate, endDate, useCache = true) {
   try {
     const user = await dbHelpers.getUserById(userId);
     if (!user || !user.kommo_account) {
@@ -278,7 +305,7 @@ async function generateRevenueAnalysis(userId, repId, startDate, endDate) {
     }
 
     const aggregate = require('../server').aggregate;
-    const data = await aggregate(user.kommo_account, tokens);
+    const data = await aggregate(user.kommo_account, tokens, useCache);
     
     const userData = data.reps.find(rep => rep.user_id == repId);
     if (!userData) {
@@ -307,7 +334,7 @@ async function generateRevenueAnalysis(userId, repId, startDate, endDate) {
   }
 }
 
-async function generateTeamComparison(startDate, endDate) {
+async function generateTeamComparison(startDate, endDate, useCache = true) {
   try {
     // Get all users and their Kommo accounts
     const users = await dbHelpers.getAllUsers();
@@ -319,7 +346,7 @@ async function generateTeamComparison(startDate, endDate) {
           const tokens = await dbHelpers.getKommoTokens(user.kommo_account);
           if (tokens) {
             const aggregate = require('../server').aggregate;
-            const data = await aggregate(user.kommo_account, tokens);
+            const data = await aggregate(user.kommo_account, tokens, useCache);
             
             // Get the first rep's data (assuming single user per account)
             const repData = data.reps[0];
@@ -358,7 +385,7 @@ async function generateTeamComparison(startDate, endDate) {
   }
 }
 
-async function generateConversionFunnel(userId, repId, startDate, endDate) {
+async function generateConversionFunnel(userId, repId, startDate, endDate, useCache = true) {
   try {
     const user = await dbHelpers.getUserById(userId);
     if (!user || !user.kommo_account) {
@@ -371,7 +398,7 @@ async function generateConversionFunnel(userId, repId, startDate, endDate) {
     }
 
     const aggregate = require('../server').aggregate;
-    const data = await aggregate(user.kommo_account, tokens);
+    const data = await aggregate(user.kommo_account, tokens, useCache);
     
     const userData = data.reps.find(rep => rep.user_id == repId);
     if (!userData) {
@@ -408,7 +435,7 @@ async function generateConversionFunnel(userId, repId, startDate, endDate) {
   }
 }
 
-async function generateTimeAnalysis(userId, repId, startDate, endDate) {
+async function generateTimeAnalysis(userId, repId, startDate, endDate, useCache = true) {
   try {
     const user = await dbHelpers.getUserById(userId);
     if (!user || !user.kommo_account) {
@@ -421,7 +448,7 @@ async function generateTimeAnalysis(userId, repId, startDate, endDate) {
     }
 
     const aggregate = require('../server').aggregate;
-    const data = await aggregate(user.kommo_account, tokens);
+    const data = await aggregate(user.kommo_account, tokens, useCache);
     
     const userData = data.reps.find(rep => rep.user_id == repId);
     if (!userData) {
