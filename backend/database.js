@@ -269,6 +269,27 @@ function initializeTables() {
       }
     });
   });
+
+  // Create reports table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS reports (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      rep_id TEXT,
+      report_type TEXT NOT NULL,
+      time_range TEXT NOT NULL,
+      format TEXT NOT NULL,
+      data TEXT,
+      generated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users (id)
+    )
+  `, (err) => {
+    if (err) {
+      logger.error('Error creating reports table:', { error: err.message });
+    } else {
+      logger.info('Reports table ready');
+    }
+  });
 }
 
 // Database helper functions
@@ -497,6 +518,69 @@ const dbHelpers = {
           resolve(row);
         }
       });
+    });
+  },
+
+  // Report operations
+  saveReport: (reportId, userId, repId, reportType, timeRange, format, data) => {
+    return new Promise((resolve, reject) => {
+      const dataJson = JSON.stringify(data);
+      db.run(
+        'INSERT INTO reports (id, user_id, rep_id, report_type, time_range, format, data) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [reportId, userId, repId, reportType, timeRange, format, dataJson],
+        function(err) {
+          if (err) {
+            logger.error('Failed to save report', { error: err.message, reportId });
+            reject(err);
+          } else {
+            logger.info('Report saved successfully', { reportId, userId, reportType });
+            resolve(this.lastID);
+          }
+        }
+      );
+    });
+  },
+
+  getUserReports: (userId, limit = 50) => {
+    return new Promise((resolve, reject) => {
+      db.all(
+        'SELECT * FROM reports WHERE user_id = ? ORDER BY generated_at DESC LIMIT ?',
+        [userId, limit],
+        (err, rows) => {
+          if (err) {
+            logger.error('Failed to get user reports', { error: err.message, userId });
+            reject(err);
+          } else {
+            logger.debug('User reports retrieved', { userId, count: rows.length });
+            resolve(rows);
+          }
+        }
+      );
+    });
+  },
+
+  getReportStats: (userId) => {
+    return new Promise((resolve, reject) => {
+      db.get(
+        `SELECT 
+          COUNT(*) as total_reports,
+          COUNT(CASE WHEN generated_at >= datetime('now', 'start of month') THEN 1 END) as reports_this_month,
+          COUNT(CASE WHEN format = 'PDF' THEN 1 END) as pdf_reports,
+          COUNT(CASE WHEN format = 'CSV' THEN 1 END) as csv_reports,
+          COUNT(CASE WHEN format = 'EXCEL' THEN 1 END) as excel_reports
+        FROM reports 
+        WHERE user_id = ?`,
+        [userId],
+        (err, row) => {
+          if (err) {
+            logger.error('Failed to get report stats', { error: err.message, userId });
+            reject(err);
+          } else {
+            logger.debug('Report stats retrieved', { userId, stats: row });
+            resolve(row);
+          }
+        }
+      );
     });
   },
 

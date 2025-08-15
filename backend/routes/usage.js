@@ -20,7 +20,7 @@ router.get('/', authenticate, async (req, res) => {
     
     // Get usage data
     const apiCallsToday = await dbHelpers.getUserUsage(userId, 'api_call', today);
-    const customReports = await dbHelpers.getUserUsage(userId, 'custom_report');
+    const customReports = await dbHelpers.getUserUsage(userId, 'report_generated');
     
     // Use actual team member count from analytics data, fallback to 1 if not provided
     const actualTeamMembers = parseInt(teamMemberCount) || 1;

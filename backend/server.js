@@ -774,3 +774,8 @@ app.listen(PORT, () => {
     timestamp: new Date().toISOString()
   });
 });
+
+// Export the aggregate function for use in other modules
+module.exports = {
+  aggregate
+};

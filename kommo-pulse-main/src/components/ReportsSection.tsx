@@ -97,7 +97,7 @@ const reportTypes: ReportConfig[] = [
 ];
 
 const ReportsSection: React.FC<ReportsSectionProps> = ({ repData }) => {
-  const { tokens, isAuthenticated } = useAuthStore();
+  const { tokens, isAuthenticated, user } = useAuthStore();
   const [selectedReport, setSelectedReport] = useState<string>('');
   const [timeRange, setTimeRange] = useState<string>('');
   const [format, setFormat] = useState<'pdf' | 'csv' | 'excel'>('pdf');
@@ -109,7 +109,64 @@ const ReportsSection: React.FC<ReportsSectionProps> = ({ repData }) => {
     timestamp: Date;
     status: 'completed' | 'failed';
   }>>([]);
+  const [reportStats, setReportStats] = useState({
+    totalReports: 0,
+    reportsThisMonth: 0,
+    pdfReports: 0,
+    csvReports: 0,
+    excelReports: 0
+  });
   const [expandedReport, setExpandedReport] = useState<string | null>(null);
+
+  // Fetch report history and stats
+  const fetchReportData = async () => {
+    try {
+      if (!isAuthenticated || !tokens?.accessToken) return;
+
+      // Fetch report history
+      const historyResponse = await fetch(`${import.meta.env.VITE_API_URL}/reports/history`, {
+        headers: {
+          'Authorization': `Bearer ${tokens.accessToken}`
+        }
+      });
+
+      if (historyResponse.ok) {
+        const historyData = await historyResponse.json();
+        if (historyData.success) {
+          const reports = historyData.data.reports.map((report: any) => ({
+            id: report.id,
+            name: reportTypes.find(r => r.id === report.reportType)?.name || 'Unknown Report',
+            format: report.format.toUpperCase(),
+            timestamp: new Date(report.generatedAt),
+            status: 'completed' as const,
+            data: report.data
+          }));
+          setGeneratedReports(reports);
+        }
+      }
+
+      // Fetch report stats
+      const statsResponse = await fetch(`${import.meta.env.VITE_API_URL}/reports/stats`, {
+        headers: {
+          'Authorization': `Bearer ${tokens.accessToken}`
+        }
+      });
+
+      if (statsResponse.ok) {
+        const statsData = await statsResponse.json();
+        if (statsData.success) {
+          setReportStats(statsData.data);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching report data:', error);
+    }
+  };
+
+  // Load report data on component mount
+  React.useEffect(() => {
+    fetchReportData();
+  }, [isAuthenticated, tokens]);
 
   const handleGenerateReport = async () => {
     if (!selectedReport || !timeRange || !format) {
@@ -131,18 +188,27 @@ const ReportsSection: React.FC<ReportsSectionProps> = ({ repData }) => {
         throw new Error('No authentication token found. Please log in again.');
       }
 
+      console.log('🔍 RepData object:', repData);
+      console.log('🔍 RepData.user_id:', repData?.user_id);
+      console.log('🔍 RepData type:', typeof repData?.user_id);
+      
+      const requestBody = {
+        reportType: selectedReport,
+        timeRange,
+        format,
+        repId: repData?.user_id // Kommo rep ID
+      };
+      
+      console.log('🔍 Report request body:', requestBody);
+      console.log('🔍 User object:', user);
+      
       const response = await fetch(`${import.meta.env.VITE_API_URL}/reports/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${tokens.accessToken}`
         },
-        body: JSON.stringify({
-          reportType: selectedReport,
-          timeRange,
-          format,
-          userId: repData.user_id
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
@@ -162,7 +228,8 @@ const ReportsSection: React.FC<ReportsSectionProps> = ({ repData }) => {
           data: result.data.data
         };
         
-        setGeneratedReports(prev => [newReport, ...prev]);
+        // Refresh report data to include the new report
+        await fetchReportData();
         
         // Create and download the report file
         await downloadReport(newReport);
@@ -603,10 +670,10 @@ const ReportsSection: React.FC<ReportsSectionProps> = ({ repData }) => {
               <div className="p-2 rounded-lg bg-blue-100">
                 <FileText className="h-4 w-4 text-blue-600" />
               </div>
-              <div>
-                <p className="text-sm font-medium">Total Reports</p>
-                <p className="text-2xl font-bold text-blue-600">{generatedReports.length}</p>
-              </div>
+                             <div>
+                 <p className="text-sm font-medium">Total Reports</p>
+                 <p className="text-2xl font-bold text-blue-600">{reportStats.totalReports}</p>
+               </div>
             </div>
           </CardContent>
         </Card>
@@ -617,12 +684,12 @@ const ReportsSection: React.FC<ReportsSectionProps> = ({ repData }) => {
               <div className="p-2 rounded-lg bg-green-100">
                 <CheckCircle className="h-4 w-4 text-green-600" />
               </div>
-              <div>
-                <p className="text-sm font-medium">Completed</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {generatedReports.filter(r => r.status === 'completed').length}
-                </p>
-              </div>
+                             <div>
+                 <p className="text-sm font-medium">Completed</p>
+                 <p className="text-2xl font-bold text-green-600">
+                   {reportStats.totalReports}
+                 </p>
+               </div>
             </div>
           </CardContent>
         </Card>
@@ -633,17 +700,12 @@ const ReportsSection: React.FC<ReportsSectionProps> = ({ repData }) => {
               <div className="p-2 rounded-lg bg-purple-100">
                 <TrendingUp className="h-4 w-4 text-purple-600" />
               </div>
-              <div>
-                <p className="text-sm font-medium">This Month</p>
-                <p className="text-2xl font-bold text-purple-600">
-                  {generatedReports.filter(r => {
-                    const now = new Date();
-                    const reportDate = new Date(r.timestamp);
-                    return reportDate.getMonth() === now.getMonth() && 
-                           reportDate.getFullYear() === now.getFullYear();
-                  }).length}
-                </p>
-              </div>
+                             <div>
+                 <p className="text-sm font-medium">This Month</p>
+                 <p className="text-2xl font-bold text-purple-600">
+                   {reportStats.reportsThisMonth}
+                 </p>
+               </div>
             </div>
           </CardContent>
         </Card>
@@ -654,12 +716,12 @@ const ReportsSection: React.FC<ReportsSectionProps> = ({ repData }) => {
               <div className="p-2 rounded-lg bg-orange-100">
                 <Download className="h-4 w-4 text-orange-600" />
               </div>
-              <div>
-                <p className="text-sm font-medium">Downloads</p>
-                <p className="text-2xl font-bold text-orange-600">
-                  {generatedReports.filter(r => r.status === 'completed').length}
-                </p>
-              </div>
+                             <div>
+                 <p className="text-sm font-medium">Downloads</p>
+                 <p className="text-2xl font-bold text-orange-600">
+                   {reportStats.totalReports}
+                 </p>
+               </div>
             </div>
           </CardContent>
         </Card>
