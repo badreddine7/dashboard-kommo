@@ -1,19 +1,50 @@
-# Dashboard++ - Advanced CRM Analytics Dashboard
+# Kommo Pulse - Advanced CRM Analytics Dashboard
 
-A powerful, production-ready CRM analytics dashboard for Kommo with comprehensive features, subscription management, and enterprise-grade security.
+A production-ready, feature-rich CRM analytics dashboard for Kommo (formerly AmoCRM) with real-time insights, advanced caching, comprehensive reporting, and modern deployment options.
 
-## 🚀 Features
+## ✨ Features
 
-- 📊 **Real-time CRM Analytics** - Comprehensive dashboard with lead tracking, sales funnel analysis, and performance metrics
-- 🎨 **Dark/Light Mode** - Beautiful, responsive UI with theme switching
-- 🔐 **User Authentication** - Secure JWT-based authentication with subscription management
-- 💳 **Stripe Integration** - Complete payment processing with subscription tiers
-- 📈 **Advanced Charts** - Interactive charts and reports using Chart.js
-- 🔄 **Auto-refresh** - Real-time data updates and token refresh
-- 📱 **Responsive Design** - Works perfectly on desktop, tablet, and mobile
-- 🎯 **Usage Tracking** - Monitor API usage and enforce limits per subscription tier
-- 🛡️ **Production Ready** - Docker deployment, automated backups, health monitoring
-- 🔧 **SQLite Optimized** - High-performance database with WAL mode and automated maintenance
+### 🎨 Modern UI/UX
+- **Dark/Light Mode** - Beautiful theme switching with smooth transitions
+- **Responsive Design** - Perfect on desktop, tablet, and mobile
+- **System Theme** - Automatically follows your system preference
+- **Smooth Animations** - Beautiful transitions and loading states
+
+### 📊 Advanced Analytics
+- **Real-time Dashboard** - Live metrics and performance insights
+- **Lead Analytics** - Conversion rates, cycle times, deal sizes
+- **Activity Heatmap** - Visual activity tracking over time
+- **Sales Funnel Analytics** - Comprehensive pipeline performance metrics
+- **Team Comparison** - Performance comparison across team members
+- **Revenue Analysis** - Financial performance and trends
+- **Time Analysis** - Efficiency metrics and productivity insights
+
+### 🔄 Smart Caching System
+- **Browser-based Caching** - 1-hour cache duration for optimal performance
+- **API Call Reduction** - 90%+ reduction in Kommo API calls
+- **Instant Data Loading** - Cached data loads instantly
+- **Cache Management** - Manual refresh and cache age display
+- **Automatic Expiration** - Cache expires automatically after 1 hour
+
+### 📋 Comprehensive Reporting
+- **6 Report Types** - Performance Summary, Activity Report, Revenue Analysis, Team Comparison, Conversion Funnel, Time Analysis
+- **Multiple Formats** - PDF, CSV, Excel export options
+- **Real Data** - All reports use actual Kommo data (no mock data)
+- **Report History** - Persistent report storage and history
+- **Report Statistics** - Track total reports, monthly usage, format distribution
+
+### 🔐 Authentication & Security
+- **JWT Authentication** - Secure token-based authentication
+- **User Management** - Registration, login, profile management
+- **Subscription System** - Stripe integration for premium features
+- **Usage Tracking** - Monitor API calls and feature usage
+- **Rate Limiting** - Protect against API abuse
+
+### 🎛️ Dashboard Customization
+- **Layout Options** - Grid and list layouts
+- **Component Visibility** - Show/hide specific sections
+- **Auto Refresh** - Configurable refresh intervals
+- **Settings Persistence** - All preferences saved locally
 
 ## 🛠️ Tech Stack
 
@@ -22,11 +53,12 @@ A powerful, production-ready CRM analytics dashboard for Kommo with comprehensiv
 - **TypeScript** - Type-safe development
 - **Vite** - Fast build tool and development server
 - **Tailwind CSS** - Utility-first CSS framework
+- **Shadcn/ui** - Beautiful component library
 - **Zustand** - Lightweight state management
-- **React Router** - Client-side routing
+- **React Query** - Data fetching and caching
+- **jsPDF** - Client-side PDF generation
 - **Chart.js** - Interactive charts and graphs
 - **Lucide React** - Beautiful icons
-- **Radix UI** - Accessible UI components
 
 ### Backend
 - **Node.js** - JavaScript runtime
@@ -40,10 +72,16 @@ A powerful, production-ready CRM analytics dashboard for Kommo with comprehensiv
 - **Helmet** - Security middleware
 - **Express Rate Limit** - API rate limiting
 
+### DevOps
+- **Docker** - Containerization
+- **Docker Compose** - Multi-container orchestration
+- **Railway** - Deployment platform
+- **GitHub** - Version control
+
 ## 📦 Installation
 
 ### Prerequisites
-- Node.js 16+ 
+- Node.js 18+ 
 - npm or yarn
 - Git
 - Docker & Docker Compose (for production)
@@ -56,7 +94,12 @@ git clone https://github.com/badreddine7/dashboard-kommo.git
 cd dashboard-kommo
 ```
 
-2. **Install dependencies**
+2. **Start with Docker (Recommended)**
+```bash
+docker-compose up --build -d
+```
+
+3. **Or start manually**
 ```bash
 # Backend dependencies
 cd backend
@@ -67,7 +110,7 @@ cd ../kommo-pulse-main
 npm install
 ```
 
-3. **Environment setup**
+4. **Environment setup**
 ```bash
 # Backend
 cd backend
@@ -80,7 +123,7 @@ cp env.example .env
 # Edit .env with your configuration
 ```
 
-4. **Start development servers**
+5. **Start development servers**
 ```bash
 # Backend (Terminal 1)
 cd backend
@@ -91,65 +134,56 @@ cd kommo-pulse-main
 npm run dev
 ```
 
+6. **Access the application**
+- Frontend: `http://localhost`
+- Backend API: `http://localhost:3000`
+
 ## ⚙️ Configuration
 
 ### Backend Environment Variables
 
 Create `backend/.env`:
 ```env
-# JWT Configuration
-JWT_SECRET=your-super-secure-jwt-secret-key-here
-
-# Stripe Configuration
-STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
-STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
-STRIPE_PRICE_ID_PROFESSIONAL=price_your_professional_price_id
-STRIPE_PRICE_ID_ENTERPRISE=price_your_enterprise_price_id
+# Authentication
+JWT_SECRET=your-super-secret-jwt-key
+SESSION_SECRET=your-session-secret
 
 # Kommo OAuth
 CLIENT_ID=your_kommo_client_id
 CLIENT_SECRET=your_kommo_client_secret
-CALLBACK_URL=http://localhost:3000/kommo/callback
+CALLBACK_URL=https://your-domain.com/kommo/callback
 
-# Server Configuration
+# Server
 PORT=3000
-NODE_ENV=development
+NODE_ENV=production
+FRONTEND_URL=https://your-domain.com
 
-# Frontend URL (for CORS)
-FRONTEND_URL=http://localhost:5173
-
-# SQLite Database Configuration
+# Database
 DB_PATH=./saas.db
 DB_BACKUP_PATH=./backups/
 DB_BACKUP_RETENTION_DAYS=30
 
 # Security
-SESSION_SECRET=your_session_secret_key
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX_REQUESTS=100
 
 # Logging
 LOG_LEVEL=info
 LOG_FILE_PATH=./logs/app.log
+
+# Stripe (for payments)
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
 ### Frontend Environment Variables
 
 Create `kommo-pulse-main/.env`:
 ```env
-# API Configuration
-VITE_API_URL=http://localhost:3000
-
-# Stripe Configuration
-VITE_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
-
-# App Configuration
-VITE_APP_NAME=Dashboard++
-VITE_APP_VERSION=2.0.0
-VITE_GOOGLE_ANALYTICS_ID=your_ga_id
-VITE_SENTRY_DSN=your_sentry_dsn
-VITE_ENABLE_ANALYTICS=true
-VITE_ENABLE_ERROR_TRACKING=true
+VITE_API_URL=https://your-backend-domain.com/api
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
+VITE_APP_NAME=Kommo Pulse
 ```
 
 ## 🔧 Development
@@ -183,76 +217,64 @@ npm run lint         # Run ESLint
 dashboard-kommo/
 ├── backend/                     # Backend API server
 │   ├── routes/                 # API route handlers
-│   ├── services/               # Business logic
-│   ├── middleware/             # Express middleware
-│   ├── config/                 # Configuration files
-│   ├── scripts/                # Database maintenance scripts
+│   │   ├── auth.js             # Authentication endpoints
+│   │   ├── reports.js          # Report generation
+│   │   ├── usage.js            # Usage tracking
+│   │   └── stripe.js           # Payment processing
 │   ├── database.js             # Database setup and helpers
-│   ├── server.js               # Main server file
-│   └── Dockerfile              # Backend Docker configuration
+│   ├── server.js               # Main server file + aggregate function
+│   ├── Dockerfile              # Backend Docker configuration
+│   └── railway.json            # Railway deployment config
 ├── kommo-pulse-main/           # Frontend React app
 │   ├── src/
 │   │   ├── components/         # React components
-│   │   ├── pages/              # Page components
-│   │   ├── stores/             # Zustand stores
+│   │   │   ├── Dashboard.tsx   # Main dashboard
+│   │   │   ├── ReportsSection.tsx # Report generation UI
+│   │   │   └── UsageTracker.tsx # Usage tracking UI
 │   │   ├── hooks/              # Custom React hooks
-│   │   └── utils/              # Utility functions
-│   ├── public/                 # Static assets
-│   ├── index.html              # HTML template
+│   │   │   └── useAnalytics.ts # Analytics data fetching
+│   │   ├── utils/              # Utility functions
+│   │   │   └── cache.js        # Caching system
+│   │   └── stores/             # Zustand stores
 │   ├── Dockerfile              # Frontend Docker configuration
-│   └── nginx.conf              # Nginx configuration
+│   └── railway.json            # Railway deployment config
 ├── docker-compose.yml          # Docker orchestration
-├── deploy.sh                   # Deployment script
+├── ARCHITECTURE.md             # Detailed architecture documentation
 └── README.md                   # This file
 ```
 
-## 🚀 Production Deployment
+## 🚀 Deployment Options
 
-### Docker Deployment (Recommended)
-
-1. **Set up environment variables**
+### 1. Railway (Recommended - Easiest)
 ```bash
-# Copy and configure environment files
-cp backend/env.example backend/.env
-cp kommo-pulse-main/env.example kommo-pulse-main/.env
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Login and deploy
+railway login
+railway init
+railway up
 ```
 
-2. **Deploy with Docker Compose**
+### 2. Docker Deployment
 ```bash
-# Make deploy script executable
-chmod +x deploy.sh
+# Build and run with Docker Compose
+docker-compose up --build -d
 
-# Deploy the application
-./deploy.sh
+# Or build individual containers
+docker build -t kommo-backend ./backend
+docker build -t kommo-frontend ./kommo-pulse-main
 ```
 
-3. **Verify deployment**
-```bash
-# Check health endpoints
-curl http://localhost:3000/health
-curl http://localhost/health
+### 3. Vercel (Frontend) + Railway (Backend)
+- Deploy frontend to Vercel
+- Deploy backend to Railway
+- Connect via environment variables
 
-# View logs
-docker-compose logs -f backend
-docker-compose logs -f frontend
-```
-
-### Manual Deployment
-
-**Backend:**
-```bash
-cd backend
-npm install --production
-npm start
-```
-
-**Frontend:**
-```bash
-cd kommo-pulse-main
-npm install
-npm run build
-# Deploy the 'dist' folder to your hosting service
-```
+### 4. DigitalOcean App Platform
+- Connect GitHub repository
+- Configure build settings
+- Deploy with one click
 
 ## 📊 Subscription Tiers
 
@@ -262,10 +284,11 @@ npm run build
 | Basic Charts | ✅ | ✅ | ✅ |
 | Advanced Charts | ❌ | ✅ | ✅ |
 | Activity Heatmap | ❌ | ✅ | ✅ |
+| Report Generation | ❌ | 5/month | Unlimited |
+| Caching System | ✅ | ✅ | ✅ |
 | Lead Limit | 1,000 | 10,000 | Unlimited |
 | Team Members | 1 | 5 | Unlimited |
 | API Calls/Day | 1,000 | 10,000 | 50,000 |
-| Custom Reports | ❌ | 5 | Unlimited |
 | Export Formats | None | CSV, PDF | All formats |
 | Priority Support | ❌ | ✅ | ✅ |
 
@@ -280,6 +303,60 @@ npm run build
 - **HTTPS Required** - All production deployments use HTTPS
 - **SQL Injection Protection** - Parameterized queries
 - **XSS Protection** - Content Security Policy headers
+
+## 🔄 Caching System
+
+### Multi-Level Caching Strategy
+- **Browser Storage** - localStorage for client-side caching
+- **Cache Duration** - 1 hour with automatic expiration
+- **Cache Invalidation** - Manual refresh option
+- **Performance** - 90%+ reduction in API calls
+
+### Cache Implementation
+```typescript
+// Frontend Cache (kommo-pulse-main/src/utils/cache.js)
+class KommoCache {
+  private CACHE_PREFIX = 'kommo_';
+  private CACHE_DURATION = 3600000; // 1 hour
+
+  set(key: string, data: any): void {
+    const item = {
+      data,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(this.CACHE_PREFIX + key, JSON.stringify(item));
+  }
+
+  get(key: string): any | null {
+    const item = localStorage.getItem(this.CACHE_PREFIX + key);
+    if (!item) return null;
+    
+    const { data, timestamp } = JSON.parse(item);
+    if (Date.now() - timestamp > this.CACHE_DURATION) {
+      this.remove(key);
+      return null;
+    }
+    
+    return data;
+  }
+}
+```
+
+## 📋 Report Generation
+
+### Available Report Types
+1. **Performance Summary** - Overall performance metrics
+2. **Activity Report** - User activity and engagement
+3. **Revenue Analysis** - Financial performance and trends
+4. **Team Comparison** - Performance across team members
+5. **Conversion Funnel** - Lead conversion analysis
+6. **Time Analysis** - Efficiency and productivity metrics
+
+### Report Features
+- **Real Data** - All reports use actual Kommo data
+- **Multiple Formats** - PDF, CSV, Excel export
+- **Report History** - Persistent storage and retrieval
+- **Statistics Tracking** - Usage analytics and metrics
 
 ## 🗄️ Database Management
 
@@ -307,6 +384,27 @@ npm run db:optimize
 npm run db:status
 ```
 
+## 🔄 API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+- `GET /api/auth/profile` - Get user profile
+
+### Analytics
+- `GET /api/report` - Get Kommo analytics data
+- `GET /api/usage` - Get usage statistics
+
+### Reports
+- `POST /api/reports/generate` - Generate reports
+- `GET /api/reports/history` - Get report history
+- `GET /api/reports/stats` - Get report statistics
+- `POST /api/reports/clear-cache` - Clear cache
+
+### Payments
+- `POST /api/stripe/create-checkout` - Create Stripe checkout
+- `POST /api/stripe/webhook` - Stripe webhook handler
+
 ## 🐛 Troubleshooting
 
 ### Common Issues
@@ -325,12 +423,17 @@ npm run db:status
    - Check callback URL configuration
    - Ensure tokens are properly stored and refreshed
 
-4. **Stripe integration issues**
-   - Verify Stripe keys are correct
-   - Check webhook endpoint configuration
-   - Ensure subscription tiers are set up
+4. **Caching issues**
+   - Check browser localStorage permissions
+   - Verify cache duration settings
+   - Use manual refresh if needed
 
-5. **Docker deployment issues**
+5. **Report generation errors**
+   - Ensure Kommo data is available
+   - Check user permissions and limits
+   - Verify PDF generation dependencies
+
+6. **Docker deployment issues**
    - Check Docker and Docker Compose installation
    - Verify environment variables are set
    - Check container logs for errors
@@ -357,13 +460,23 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Support
 
-- **Documentation** - Check this README and inline code comments
+- **Documentation** - Check this README and [ARCHITECTURE.md](ARCHITECTURE.md)
 - **Issues** - Create an issue on [GitHub](https://github.com/badreddine7/dashboard-kommo/issues)
-- **Email** - Contact support@dashboardplus.com
+- **Email** - Contact support@kommopulse.com
 
 ## 🔄 Changelog
 
-### Version 2.0.0 (Current)
+### Version 2.1.0 (Current)
+- ✅ Smart caching system with 1-hour browser cache
+- ✅ Comprehensive report generation (6 report types)
+- ✅ Real data integration (no mock data)
+- ✅ Report history and statistics tracking
+- ✅ PDF generation with jsPDF
+- ✅ Advanced deployment options (Railway, Docker, Vercel)
+- ✅ Performance optimization and monitoring
+- ✅ Enhanced security and error handling
+
+### Version 2.0.0
 - ✅ Complete authentication system with JWT
 - ✅ Subscription management with Stripe integration
 - ✅ Advanced analytics dashboard with real-time data
@@ -385,6 +498,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ by the Dashboard++ Team**
+**Built with ❤️ by the Kommo Pulse Team**
 
-*Transform your Kommo CRM data into actionable insights with Dashboard++*
+*Transform your Kommo CRM data into actionable insights with Kommo Pulse*
