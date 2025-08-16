@@ -35,8 +35,14 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Expose port
+# Expose port (will be overridden by Railway's PORT)
 EXPOSE 80
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Create a startup script to handle environment variables
+RUN echo '#!/bin/bash\n\
+envsubst < /etc/nginx/nginx.conf > /etc/nginx/nginx.conf.tmp\n\
+mv /etc/nginx/nginx.conf.tmp /etc/nginx/nginx.conf\n\
+nginx -g "daemon off;"' > /start.sh && chmod +x /start.sh
+
+# Start nginx with environment variable substitution
+CMD ["/start.sh"]
