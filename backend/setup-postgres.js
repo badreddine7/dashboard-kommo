@@ -98,7 +98,7 @@ DB_PORT=${dbPort}
 # DB_PATH=./saas.db
 `;
 
-    const envPath = path.join(__dirname, '.env.postgres');
+    const envPath = path.join(__dirname, '.env');
     fs.writeFileSync(envPath, envContent);
     console.log(`✅ Environment configuration saved to ${envPath}`);
 
