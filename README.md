@@ -276,21 +276,6 @@ docker build -t kommo-frontend ./kommo-pulse-main
 - Configure build settings
 - Deploy with one click
 
-## 📊 Subscription Tiers
-
-| Feature | FREE Trial | Professional | Enterprise |
-|---------|------------|--------------|------------|
-| Dashboard Access | ✅ | ✅ | ✅ |
-| Basic Charts | ✅ | ✅ | ✅ |
-| Advanced Charts | ❌ | ✅ | ✅ |
-| Activity Heatmap | ❌ | ✅ | ✅ |
-| Report Generation | ❌ | 5/month | Unlimited |
-| Caching System | ✅ | ✅ | ✅ |
-| Lead Limit | 1,000 | 10,000 | Unlimited |
-| Team Members | 1 | 5 | Unlimited |
-| API Calls/Day | 1,000 | 10,000 | 50,000 |
-| Export Formats | None | CSV, PDF | All formats |
-| Priority Support | ❌ | ✅ | ✅ |
 
 ## 🔒 Security Features
 
