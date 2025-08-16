@@ -150,7 +150,7 @@ router.get('/history', authenticate, validateUserId, async (req, res) => {
           timeRange: report.time_range,
           format: report.format,
           generatedAt: report.generated_at,
-          data: report.data ? JSON.parse(report.data) : null
+          data: report.data ? (typeof report.data === 'string' ? JSON.parse(report.data) : report.data) : null
         }))
       }
     });
