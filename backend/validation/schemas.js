@@ -143,6 +143,21 @@ const stripePortalSchema = z.object({
   returnUrl: z.string().url('Return URL must be a valid URL').optional()
 });
 
+const stripeCustomerIdSchema = z.object({
+  customerId: z.string().min(1, 'Customer ID is required')
+});
+
+const stripeSubscriptionIdSchema = z.object({
+  subscriptionId: z.string().min(1, 'Subscription ID is required')
+});
+
+const stripeSyncSchema = z.object({
+  subscriptionId: z.string().optional(),
+  userId: z.string().uuid('User ID must be a valid UUID').optional()
+}).refine(data => data.subscriptionId || data.userId, {
+  message: 'Either subscriptionId or userId is required'
+});
+
 // ============================================================================
 // USAGE SCHEMAS
 // ============================================================================
@@ -257,6 +272,9 @@ module.exports = {
   stripeCheckoutSchema,
   stripeWebhookSchema,
   stripePortalSchema,
+  stripeCustomerIdSchema,
+  stripeSubscriptionIdSchema,
+  stripeSyncSchema,
   
   // Usage schemas
   usageQuerySchema,
