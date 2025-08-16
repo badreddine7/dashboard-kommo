@@ -1,6 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { authenticate } = require('../middleware/auth');
+const { validateBody, validateUserId, validateQuery } = require('../middleware/validation');
+const { 
+  usageQuerySchema,
+  usageLogSchema
+} = require('../validation/schemas');
 const { 
   getUserSubscription, 
   getUserUsage, 
@@ -9,7 +14,7 @@ const {
 const { SUBSCRIPTION_TIERS } = require('../config/subscription-tiers');
 
 // Get user's usage statistics
-router.get('/', authenticate, async (req, res) => {
+router.get('/', authenticate, validateUserId, validateQuery(usageQuerySchema), async (req, res) => {
   try {
     const userId = req.user.id;
     const { teamMemberCount } = req.query; // Get team member count from query params
@@ -74,7 +79,7 @@ router.get('/', authenticate, async (req, res) => {
 });
 
 // Log usage (for internal use)
-router.post('/log', authenticate, async (req, res) => {
+router.post('/log', authenticate, validateUserId, validateBody(usageLogSchema), async (req, res) => {
   try {
     const userId = req.user.id;
     const { action_type, count = 1, metadata = null } = req.body;

@@ -50,9 +50,10 @@ const stripeRoutes = require('./routes/stripe');
 const usageRoutes = require('./routes/usage');
 const reportsRoutes = require('./routes/reports');
 const { authenticate, requireFeature, requireUsageLimit } = require('./middleware/auth');
-const { 
-  saveKommoTokens, 
-  getKommoTokens, 
+const { validateUserId } = require('./middleware/validation');
+const {
+  saveKommoTokens,
+  getKommoTokens,
   logUsage
 } = require('./database-pg');
 const { syncSubscriptionStatus } = require('./services/webhooks');
@@ -662,6 +663,7 @@ app.get('/kommo/callback', async (req, res) => {
 // API route for report, customized per account (now protected)
 app.get('/api/report', 
   authenticate, 
+  validateUserId,
   requireFeature('dashboard.metrics'),
   requireUsageLimit('api_calls_per_hour', 'api_call'),
   async (req, res) => {

@@ -47,7 +47,8 @@
     "pg-pool": "^3.10.1",
     "stripe": "^14.0.0",
     "uuid": "^9.0.0",
-    "winston": "^3.11.0"
+    "winston": "^3.11.0",
+    "zod": "^4.0.17"
   },
   "devDependencies": {
     "eslint": "^8.55.0",

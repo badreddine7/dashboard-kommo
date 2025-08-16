@@ -1,6 +1,15 @@
 const express = require('express');
 const authService = require('../services/auth');
 const { authenticate } = require('../middleware/auth');
+const { validateBody, validateUserId } = require('../middleware/validation');
+const { 
+  userCreateSchema,
+  userLoginSchema,
+  refreshTokenSchema,
+  userUpdateSchema,
+  passwordChangeSchema,
+  kommoAccountValidationSchema
+} = require('../validation/schemas');
 const { 
   getUserById, 
   getUserSubscription, 
@@ -10,32 +19,15 @@ const {
 const router = express.Router();
 
 // Register new user
-router.post('/register', async (req, res) => {
+router.post('/register', validateBody(userCreateSchema), async (req, res) => {
   try {
     const { email, password, name, kommoAccount } = req.body;
 
-    // Validate required fields
-    if (!email || !password) {
-      return res.status(400).json({
-        error: 'Validation failed',
-        message: 'Email and password are required'
-      });
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({
-        error: 'Validation failed',
-        message: 'Invalid email format'
-      });
-    }
-
     const result = await authService.register({
-      email: email.toLowerCase().trim(),
+      email,
       password,
-      name: name?.trim() || '',
-      kommoAccount: kommoAccount?.trim() || ''
+      name,
+      kommoAccount
     });
 
     res.status(201).json({
@@ -61,18 +53,11 @@ router.post('/register', async (req, res) => {
 });
 
 // Login user
-router.post('/login', async (req, res) => {
+router.post('/login', validateBody(userLoginSchema), async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({
-        error: 'Validation failed',
-        message: 'Email and password are required'
-      });
-    }
-
-    const result = await authService.login(email.toLowerCase().trim(), password);
+    const result = await authService.login(email, password);
 
     res.json({
       success: true,
@@ -90,16 +75,9 @@ router.post('/login', async (req, res) => {
 });
 
 // Refresh access token
-router.post('/refresh', async (req, res) => {
+router.post('/refresh', validateBody(refreshTokenSchema), async (req, res) => {
   try {
     const { refreshToken } = req.body;
-
-    if (!refreshToken) {
-      return res.status(400).json({
-        error: 'Validation failed',
-        message: 'Refresh token is required'
-      });
-    }
 
     const result = await authService.refreshToken(refreshToken);
 
@@ -119,7 +97,7 @@ router.post('/refresh', async (req, res) => {
 });
 
 // Get user profile (protected route)
-router.get('/profile', authenticate, async (req, res) => {
+router.get('/profile', authenticate, validateUserId, async (req, res) => {
   try {
     const result = await authService.getProfile(req.user.id);
 
@@ -138,14 +116,14 @@ router.get('/profile', authenticate, async (req, res) => {
 });
 
 // Update user profile (protected route)
-router.put('/profile', authenticate, async (req, res) => {
+router.put('/profile', authenticate, validateUserId, validateBody(userUpdateSchema), async (req, res) => {
   try {
     const { name, kommoAccount, kommo_account } = req.body;
     
     const updates = {};
-    if (name !== undefined) updates.name = name.trim();
-    if (kommoAccount !== undefined) updates.kommo_account = kommoAccount.trim();
-    if (kommo_account !== undefined) updates.kommo_account = kommo_account.trim();
+    if (name !== undefined) updates.name = name;
+    if (kommoAccount !== undefined) updates.kommo_account = kommoAccount;
+    if (kommo_account !== undefined) updates.kommo_account = kommo_account;
 
     console.log('🔧 Profile update request:', { name, kommoAccount, kommo_account, updates });
 
@@ -167,23 +145,9 @@ router.put('/profile', authenticate, async (req, res) => {
 });
 
 // Change password (protected route)
-router.put('/password', authenticate, async (req, res) => {
+router.put('/password', authenticate, validateUserId, validateBody(passwordChangeSchema), async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json({
-        error: 'Validation failed',
-        message: 'Current password and new password are required'
-      });
-    }
-
-    if (newPassword.length < 6) {
-      return res.status(400).json({
-        error: 'Validation failed',
-        message: 'New password must be at least 6 characters long'
-      });
-    }
 
     const result = await authService.changePassword(req.user.id, currentPassword, newPassword);
 
@@ -203,7 +167,7 @@ router.put('/password', authenticate, async (req, res) => {
 });
 
 // Logout (protected route) - mainly for client-side token cleanup
-router.post('/logout', authenticate, async (req, res) => {
+router.post('/logout', authenticate, validateUserId, async (req, res) => {
   try {
     // In a more sophisticated implementation, you might want to:
     // 1. Blacklist the token
@@ -225,7 +189,7 @@ router.post('/logout', authenticate, async (req, res) => {
 });
 
 // Validate token (utility endpoint)
-router.get('/validate', authenticate, async (req, res) => {
+router.get('/validate', authenticate, validateUserId, async (req, res) => {
   try {
     res.json({
       success: true,
@@ -246,7 +210,7 @@ router.get('/validate', authenticate, async (req, res) => {
 });
 
 // Debug endpoint to check user data
-router.get('/debug/:userId', authenticate, async (req, res) => {
+router.get('/debug/:userId', authenticate, validateUserId, async (req, res) => {
   try {
     const userId = req.params.userId;
     
@@ -287,16 +251,9 @@ router.get('/debug/:userId', authenticate, async (req, res) => {
 });
 
 // Validate Kommo account installation
-router.post('/validate-kommo-account', async (req, res) => {
+router.post('/validate-kommo-account', validateBody(kommoAccountValidationSchema), async (req, res) => {
   try {
     const { account_domain } = req.body;
-
-    if (!account_domain) {
-      return res.status(400).json({
-        success: false,
-        message: 'Account domain is required'
-      });
-    }
 
     // Clean the account domain (remove protocol if present)
     const cleanDomain = account_domain.replace(/^https?:\/\//, '').replace(/\/$/, '');

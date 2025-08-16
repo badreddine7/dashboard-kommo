@@ -1,5 +1,10 @@
 const express = require('express');
 const { authenticate } = require('../middleware/auth');
+const { validateBody, validateUserId, validateQuery } = require('../middleware/validation');
+const { 
+  reportGenerateSchema,
+  reportQuerySchema
+} = require('../validation/schemas');
 const { 
   saveReport, 
   logUsage, 
@@ -12,7 +17,7 @@ const {
 const router = express.Router();
 
 // Generate report
-router.post('/generate', authenticate, async (req, res) => {
+router.post('/generate', authenticate, validateUserId, validateBody(reportGenerateSchema), async (req, res) => {
   console.log('🔍 Report generation request received:', {
     user: req.user?.id,
     body: req.body,
@@ -22,13 +27,6 @@ router.post('/generate', authenticate, async (req, res) => {
   try {
     const { reportType, timeRange, format, repId, useCache = true } = req.body;
     const userId = req.user.id; // Use the authenticated user's ID from JWT token
-    
-    if (!reportType || !timeRange || !format) {
-      return res.status(400).json({
-        error: 'Missing required fields',
-        message: 'Report type, time range, and format are required'
-      });
-    }
 
     // Calculate date range based on timeRange
     const getDateRange = (range) => {

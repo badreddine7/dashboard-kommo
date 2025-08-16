@@ -1,4 +1,5 @@
 const authService = require('../services/auth');
+const { validateUuid } = require('./validation');
 const { 
   getUserById, 
   getUserSubscription, 
@@ -27,6 +28,16 @@ const authenticate = async (req, res, next) => {
       return res.status(401).json({ 
         error: 'Access denied', 
         message: 'Invalid token type' 
+      });
+    }
+
+    // Validate the user ID from the token
+    const uuidValidation = validateUuid(decoded.userId);
+    if (!uuidValidation.success) {
+      return res.status(401).json({ 
+        error: 'Access denied', 
+        message: 'Invalid user ID in token',
+        details: uuidValidation.error.errors
       });
     }
 

@@ -2,6 +2,11 @@ const express = require('express');
 const router = express.Router();
 const stripeService = require('../services/stripe');
 const { authenticate } = require('../middleware/auth');
+const { validateBody, validateUserId } = require('../middleware/validation');
+const { 
+  stripeCheckoutSchema,
+  stripePortalSchema
+} = require('../validation/schemas');
 const { SUBSCRIPTION_PLANS, stripe } = require('../config/stripe-config');
 const { 
   getSubscriptionByUserId, 
@@ -56,17 +61,10 @@ router.get('/plans', async (req, res) => {
 });
 
 // Create checkout session for subscription
-router.post('/create-checkout-session', authenticate, async (req, res) => {
+router.post('/create-checkout-session', authenticate, validateUserId, validateBody(stripeCheckoutSchema), async (req, res) => {
   try {
     const { planType } = req.body;
     const userId = req.user.id;
-
-    if (!planType || !SUBSCRIPTION_PLANS[planType]) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid plan type'
-      });
-    }
 
     // Use environment variable for frontend URL, fallback to localhost for Docker
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost';
