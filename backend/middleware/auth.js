@@ -1,5 +1,11 @@
 const authService = require('../services/auth');
-const { dbHelpers } = require('../database-pg');
+const { 
+  getUserById, 
+  getUserSubscription, 
+  updateSubscription, 
+  getUserUsage, 
+  logUsage 
+} = require('../database-pg');
 const { getSubscriptionStatus, hasFeatureAccess, isWithinLimit } = require('../config/subscription-tiers');
 
 // Authentication middleware
@@ -25,7 +31,7 @@ const authenticate = async (req, res, next) => {
     }
 
     // Get user from database
-    const user = await dbHelpers.getUserById(decoded.userId);
+    const user = await getUserById(decoded.userId);
     if (!user) {
       return res.status(401).json({ 
         error: 'Access denied', 
@@ -34,7 +40,7 @@ const authenticate = async (req, res, next) => {
     }
 
     // Get user subscription
-    const subscription = await dbHelpers.getUserSubscription(user.id);
+    const subscription = await getUserSubscription(user.id);
 
     // Add user and subscription to request object
     req.user = {
@@ -96,8 +102,7 @@ const requireActiveSubscription = (req, res, next) => {
     console.log('🔄 Auto-updating cancelled subscription to EXPIRED for user:', req.user.id);
     
     // Update the subscription status in the database
-    const { dbHelpers } = require('../database-pg');
-    dbHelpers.updateSubscription(req.user.id, {
+    updateSubscription(req.user.id, {
       status: 'EXPIRED',
       updated_at: new Date()
     }).then(() => {
@@ -154,8 +159,7 @@ const requireFeature = (featureName) => {
       console.log('🔄 Auto-updating cancelled subscription to EXPIRED for user:', req.user.id);
       
           // Update the subscription status in the database
-    const { dbHelpers } = require('../database-pg');
-    dbHelpers.updateSubscription(req.user.id, {
+    updateSubscription(req.user.id, {
         status: 'EXPIRED',
         updated_at: new Date()
       }).then(() => {
@@ -222,7 +226,7 @@ const requireUsageLimit = (limitType, actionType) => {
     try {
       // Get current usage for today
       const today = new Date().toISOString().split('T')[0];
-      const currentUsage = await dbHelpers.getUserUsage(userId, actionType, today);
+      const currentUsage = await getUserUsage(userId, actionType, today);
 
       // Check if within limits
       if (!isWithinLimit(plan_type, limitType, currentUsage)) {
@@ -235,7 +239,7 @@ const requireUsageLimit = (limitType, actionType) => {
       }
 
       // Log the usage
-      await dbHelpers.logUsage(userId, actionType, 1, {
+      await logUsage(userId, actionType, 1, {
         ip: req.ip,
         user_agent: req.get('User-Agent'),
         endpoint: req.path
@@ -312,9 +316,9 @@ const optionalAuth = async (req, res, next) => {
     const decoded = authService.verifyToken(token);
 
     if (decoded.type === 'access') {
-      const user = await dbHelpers.getUserById(decoded.userId);
+      const user = await getUserById(decoded.userId);
       if (user) {
-        const subscription = await dbHelpers.getUserSubscription(user.id);
+        const subscription = await getUserSubscription(user.id);
         
         req.user = {
           id: user.id,

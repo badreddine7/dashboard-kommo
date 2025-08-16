@@ -1,7 +1,15 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
-const { dbHelpers } = require('../database-pg');
+const { 
+  getUserByEmail, 
+  createUser, 
+  createSubscription, 
+  getUserSubscription, 
+  logUsage, 
+  getUserById, 
+  updateUser 
+} = require('../database-pg');
 const { getTrialEndDate } = require('../config/subscription-tiers');
 
 // JWT configuration
@@ -49,7 +57,7 @@ class AuthService {
     }
 
     // Check if user already exists
-    const existingUser = await dbHelpers.getUserByEmail(email);
+    const existingUser = await getUserByEmail(email);
     if (existingUser) {
       throw new Error('User already exists with this email');
     }
@@ -59,7 +67,7 @@ class AuthService {
 
     // Create user
     const userId = uuidv4();
-    const user = await dbHelpers.createUser({
+    const user = await createUser({
       id: userId,
       email,
       password_hash: passwordHash,
@@ -71,7 +79,7 @@ class AuthService {
     const subscriptionId = uuidv4();
     const trialEndsAt = getTrialEndDate('ENTERPRISE');
     
-    await dbHelpers.createSubscription({
+    await createSubscription({
       id: subscriptionId,
       user_id: userId,
       plan_type: 'ENTERPRISE',
@@ -122,7 +130,7 @@ class AuthService {
     }
 
     // Find user
-    const user = await dbHelpers.getUserByEmail(email);
+    const user = await getUserByEmail(email);
     if (!user) {
       throw new Error('Invalid email or password');
     }
@@ -134,7 +142,7 @@ class AuthService {
     }
 
     // Get user subscription
-    const subscription = await dbHelpers.getUserSubscription(user.id);
+    const subscription = await getUserSubscription(user.id);
 
     // Generate tokens
     const accessToken = this.generateToken({ 
@@ -150,7 +158,7 @@ class AuthService {
     }, REFRESH_TOKEN_EXPIRES_IN);
 
     // Log usage
-    await dbHelpers.logUsage(user.id, 'user_login');
+    await logUsage(user.id, 'user_login');
 
     return {
       user: {
@@ -187,7 +195,7 @@ class AuthService {
       }
 
       // Get user
-      const user = await dbHelpers.getUserById(decoded.userId);
+      const user = await getUserById(decoded.userId);
       if (!user) {
         throw new Error('User not found');
       }
@@ -209,12 +217,12 @@ class AuthService {
 
   // Get user profile
   async getProfile(userId) {
-    const user = await dbHelpers.getUserById(userId);
+    const user = await getUserById(userId);
     if (!user) {
       throw new Error('User not found');
     }
 
-    const subscription = await dbHelpers.getUserSubscription(userId);
+    const subscription = await getUserSubscription(userId);
 
     return {
       user: {
@@ -253,7 +261,7 @@ class AuthService {
     }
 
     // Update user in database
-    await dbHelpers.updateUser(userId, filteredUpdates);
+    await updateUser(userId, filteredUpdates);
     
     // Return updated profile
     return await this.getProfile(userId);
@@ -261,7 +269,7 @@ class AuthService {
 
   // Change password
   async changePassword(userId, currentPassword, newPassword) {
-    const user = await dbHelpers.getUserById(userId);
+    const user = await getUserById(userId);
     if (!user) {
       throw new Error('User not found');
     }
@@ -281,7 +289,7 @@ class AuthService {
     const newPasswordHash = await this.hashPassword(newPassword);
 
     // Update password in database
-    await dbHelpers.updateUser(userId, { password_hash: newPasswordHash });
+    await updateUser(userId, { password_hash: newPasswordHash });
 
     console.log('✅ Password updated successfully for user:', userId);
     return { success: true, message: 'Password updated successfully' };

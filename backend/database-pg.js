@@ -317,6 +317,20 @@ const dbHelpers = {
     }
   },
 
+  getSubscriptionByUserId: async (user_id) => {
+    try {
+      const result = await executeQuery(
+        'SELECT * FROM subscriptions WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1',
+        [user_id],
+        'getSubscriptionByUserId'
+      );
+      return result.rows[0];
+    } catch (error) {
+      logger.error('Failed to get subscription by user id', { error: error.message, user_id });
+      throw error;
+    }
+  },
+
   updateSubscription: async (user_id, updates) => {
     const fields = Object.keys(updates).map((key, index) => `${key} = $${index + 2}`).join(', ');
     const values = Object.values(updates);
@@ -581,4 +595,32 @@ const dbHelpers = {
   }
 };
 
-module.exports = { pool, dbHelpers, logger };
+// Export all helper functions directly for cleaner imports
+module.exports = {
+  pool,
+  logger,
+  // Database helper functions
+  createUser: dbHelpers.createUser,
+  getUserByEmail: dbHelpers.getUserByEmail,
+  getUserById: dbHelpers.getUserById,
+  getAllUsers: dbHelpers.getAllUsers,
+  updateUser: dbHelpers.updateUser,
+  findUserByStripeCustomerId: dbHelpers.findUserByStripeCustomerId,
+  createSubscription: dbHelpers.createSubscription,
+  getUserSubscription: dbHelpers.getUserSubscription,
+  getSubscriptionByUserId: dbHelpers.getSubscriptionByUserId,
+  updateSubscription: dbHelpers.updateSubscription,
+  logUsage: dbHelpers.logUsage,
+  getUserUsage: dbHelpers.getUserUsage,
+  saveKommoTokens: dbHelpers.saveKommoTokens,
+  getKommoTokens: dbHelpers.getKommoTokens,
+  saveReport: dbHelpers.saveReport,
+  getUserReports: dbHelpers.getUserReports,
+  getReportStats: dbHelpers.getReportStats,
+  getDatabaseStats: dbHelpers.getDatabaseStats,
+  testConnection: dbHelpers.testConnection,
+  getPoolStatus: dbHelpers.getPoolStatus,
+  createBackup: dbHelpers.createBackup,
+  cleanupOldBackups: dbHelpers.cleanupOldBackups,
+  initializeTables: dbHelpers.initializeTables
+};

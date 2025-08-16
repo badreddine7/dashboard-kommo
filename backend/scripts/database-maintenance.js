@@ -1,4 +1,8 @@
-const { dbHelpers } = require('../database-pg');
+const { 
+  createBackup, 
+  cleanupOldBackups, 
+  getDatabaseStats 
+} = require('../database-pg');
 const cron = require('node-cron');
 
 // Logger utility
@@ -20,17 +24,17 @@ async function performDailyBackup() {
     logger.info('Starting daily database backup');
     
     // Create backup
-    const backupFile = await dbHelpers.createBackup();
+    const backupFile = await createBackup();
     logger.info('Daily backup completed successfully', { backupFile });
     
     // Clean up old backups
-    const deletedCount = await dbHelpers.cleanupOldBackups();
+    const deletedCount = await cleanupOldBackups();
     if (deletedCount > 0) {
       logger.info('Old backups cleaned up', { deletedCount });
     }
     
     // Get database stats
-    const stats = await dbHelpers.getDatabaseStats();
+    const stats = await getDatabaseStats();
     logger.info('Database maintenance completed', { stats });
     
   } catch (error) {
@@ -111,7 +115,7 @@ async function manualOptimization() {
 // Get maintenance status
 async function getMaintenanceStatus() {
   try {
-    const stats = await dbHelpers.getDatabaseStats();
+    const stats = await getDatabaseStats();
     const fs = require('fs');
     const path = require('path');
     

@@ -1,6 +1,14 @@
 const express = require('express');
 const { authenticate } = require('../middleware/auth');
-const { dbHelpers } = require('../database-pg');
+const { 
+  saveReport, 
+  logUsage, 
+  getUserReports, 
+  getReportStats, 
+  getUserById, 
+  getKommoTokens, 
+  getAllUsers 
+} = require('../database-pg');
 const router = express.Router();
 
 // Generate report
@@ -92,7 +100,7 @@ router.post('/generate', authenticate, async (req, res) => {
 
     // Save report to database
     try {
-      await dbHelpers.saveReport(reportId, req.user.id, repId, reportType, timeRange, format, reportData);
+      await saveReport(reportId, req.user.id, repId, reportType, timeRange, format, reportData);
       console.log('✅ Report saved to database:', { reportId, userId: req.user.id, reportType });
     } catch (saveError) {
       console.error('❌ Failed to save report to database:', saveError);
@@ -100,7 +108,7 @@ router.post('/generate', authenticate, async (req, res) => {
     }
 
     // Log report generation
-    await dbHelpers.logUsage(req.user.id, 'report_generated', 1, {
+    await logUsage(req.user.id, 'report_generated', 1, {
       reportType,
       timeRange,
       format
@@ -131,8 +139,8 @@ router.post('/generate', authenticate, async (req, res) => {
 // Get report history
 router.get('/history', authenticate, async (req, res) => {
   try {
-    const reports = await dbHelpers.getUserReports(req.user.id);
-    const stats = await dbHelpers.getReportStats(req.user.id);
+    const reports = await getUserReports(req.user.id);
+    const stats = await getReportStats(req.user.id);
     
     res.json({
       success: true,
@@ -160,7 +168,7 @@ router.get('/history', authenticate, async (req, res) => {
 // Get report statistics
 router.get('/stats', authenticate, async (req, res) => {
   try {
-    const stats = await dbHelpers.getReportStats(req.user.id);
+    const stats = await getReportStats(req.user.id);
     
     res.json({
       success: true,
@@ -184,7 +192,7 @@ router.get('/stats', authenticate, async (req, res) => {
 // Clear cache for user
 router.post('/clear-cache', authenticate, async (req, res) => {
   try {
-    const user = await dbHelpers.getUserById(req.user.id);
+    const user = await getUserById(req.user.id);
     if (!user || !user.kommo_account) {
       return res.status(400).json({
         success: false,
@@ -213,7 +221,7 @@ async function generatePerformanceSummary(userId, repId, startDate, endDate, use
   console.log('🔍 generatePerformanceSummary - userId:', userId, 'repId:', repId, 'useCache:', useCache);
   try {
     // Get the user's Kommo account from the database
-    const user = await dbHelpers.getUserById(userId);
+    const user = await getUserById(userId);
     console.log('🔍 generatePerformanceSummary - user from DB:', user);
     
     if (!user) {
@@ -225,7 +233,7 @@ async function generatePerformanceSummary(userId, repId, startDate, endDate, use
     }
 
     // Get Kommo tokens
-    const tokens = await dbHelpers.getKommoTokens(user.kommo_account);
+    const tokens = await getKommoTokens(user.kommo_account);
     if (!tokens) {
       throw new Error('No Kommo tokens found');
     }
@@ -260,12 +268,12 @@ async function generatePerformanceSummary(userId, repId, startDate, endDate, use
 
 async function generateActivityReport(userId, repId, startDate, endDate, useCache = true) {
   try {
-    const user = await dbHelpers.getUserById(userId);
+    const user = await getUserById(userId);
     if (!user || !user.kommo_account) {
       throw new Error('User not found or no Kommo account configured');
     }
 
-    const tokens = await dbHelpers.getKommoTokens(user.kommo_account);
+    const tokens = await getKommoTokens(user.kommo_account);
     if (!tokens) {
       throw new Error('No Kommo tokens found');
     }
@@ -294,12 +302,12 @@ async function generateActivityReport(userId, repId, startDate, endDate, useCach
 
 async function generateRevenueAnalysis(userId, repId, startDate, endDate, useCache = true) {
   try {
-    const user = await dbHelpers.getUserById(userId);
+    const user = await getUserById(userId);
     if (!user || !user.kommo_account) {
       throw new Error('User not found or no Kommo account configured');
     }
 
-    const tokens = await dbHelpers.getKommoTokens(user.kommo_account);
+    const tokens = await getKommoTokens(user.kommo_account);
     if (!tokens) {
       throw new Error('No Kommo tokens found');
     }
@@ -337,13 +345,13 @@ async function generateRevenueAnalysis(userId, repId, startDate, endDate, useCac
 async function generateTeamComparison(startDate, endDate, useCache = true) {
   try {
     // Get all users and their Kommo accounts
-    const users = await dbHelpers.getAllUsers();
+    const users = await getAllUsers();
     const teamData = [];
 
     for (const user of users) {
       if (user.kommo_account) {
         try {
-          const tokens = await dbHelpers.getKommoTokens(user.kommo_account);
+          const tokens = await getKommoTokens(user.kommo_account);
           if (tokens) {
             const aggregate = require('../server').aggregate;
             const data = await aggregate(user.kommo_account, tokens, useCache);
@@ -387,12 +395,12 @@ async function generateTeamComparison(startDate, endDate, useCache = true) {
 
 async function generateConversionFunnel(userId, repId, startDate, endDate, useCache = true) {
   try {
-    const user = await dbHelpers.getUserById(userId);
+    const user = await getUserById(userId);
     if (!user || !user.kommo_account) {
       throw new Error('User not found or no Kommo account configured');
     }
 
-    const tokens = await dbHelpers.getKommoTokens(user.kommo_account);
+    const tokens = await getKommoTokens(user.kommo_account);
     if (!tokens) {
       throw new Error('No Kommo tokens found');
     }
@@ -437,12 +445,12 @@ async function generateConversionFunnel(userId, repId, startDate, endDate, useCa
 
 async function generateTimeAnalysis(userId, repId, startDate, endDate, useCache = true) {
   try {
-    const user = await dbHelpers.getUserById(userId);
+    const user = await getUserById(userId);
     if (!user || !user.kommo_account) {
       throw new Error('User not found or no Kommo account configured');
     }
 
-    const tokens = await dbHelpers.getKommoTokens(user.kommo_account);
+    const tokens = await getKommoTokens(user.kommo_account);
     if (!tokens) {
       throw new Error('No Kommo tokens found');
     }

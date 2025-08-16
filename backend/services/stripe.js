@@ -1,5 +1,9 @@
 const { stripe, SUBSCRIPTION_PLANS } = require('../config/stripe-config');
-const { dbHelpers } = require('../database-pg');
+const { 
+  updateUser, 
+  getUserById, 
+  updateSubscription 
+} = require('../database-pg');
 
 class StripeService {
   // Create a checkout session for subscription
@@ -72,7 +76,7 @@ class StripeService {
       });
 
       // Update user with Stripe customer ID
-      await dbHelpers.updateUser(userId, { stripe_customer_id: customer.id });
+      await updateUser(userId, { stripe_customer_id: customer.id });
 
       return customer;
     } catch (error) {
@@ -84,7 +88,7 @@ class StripeService {
   // Get customer by user ID
   async getCustomerByUserId(userId) {
     try {
-      const user = await dbHelpers.getUserById(userId);
+      const user = await getUserById(userId);
       if (!user || !user.stripe_customer_id) {
         return null;
       }
@@ -103,7 +107,7 @@ class StripeService {
       const planType = subscription.metadata.planType;
 
       // Update subscription in database
-      await dbHelpers.updateSubscription(userId, {
+      await updateSubscription(userId, {
         stripe_subscription_id: subscription.id,
         plan_type: planType,
         status: subscription.status.toUpperCase(),
@@ -125,7 +129,7 @@ class StripeService {
       const userId = subscription.metadata.userId;
       const planType = subscription.metadata.planType;
 
-      await dbHelpers.updateSubscription(userId, {
+      await updateSubscription(userId, {
         stripe_subscription_id: subscription.id,
         plan_type: planType,
         status: subscription.status.toUpperCase(),
@@ -145,7 +149,7 @@ class StripeService {
     try {
       const userId = subscription.metadata.userId;
 
-      await dbHelpers.updateSubscription(userId, {
+      await updateSubscription(userId, {
         status: 'CANCELLED',
         cancelled_at: new Date()
       });

@@ -1,7 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { authenticate } = require('../middleware/auth');
-const { dbHelpers } = require('../database-pg');
+const { 
+  getUserSubscription, 
+  getUserUsage, 
+  logUsage 
+} = require('../database-pg');
 const { SUBSCRIPTION_TIERS } = require('../config/subscription-tiers');
 
 // Get user's usage statistics
@@ -11,7 +15,7 @@ router.get('/', authenticate, async (req, res) => {
     const { teamMemberCount } = req.query; // Get team member count from query params
     
     // Get user's subscription to determine limits
-    const subscription = await dbHelpers.getUserSubscription(userId);
+    const subscription = await getUserSubscription(userId);
     const planType = subscription?.plan_type || 'ENTERPRISE';
     const planLimits = SUBSCRIPTION_TIERS[planType];
 
@@ -19,8 +23,8 @@ router.get('/', authenticate, async (req, res) => {
     const today = new Date().toISOString().split('T')[0];
     
     // Get usage data
-    const apiCallsToday = await dbHelpers.getUserUsage(userId, 'api_call', today);
-    const customReports = await dbHelpers.getUserUsage(userId, 'report_generated');
+    const apiCallsToday = await getUserUsage(userId, 'api_call', today);
+    const customReports = await getUserUsage(userId, 'report_generated');
     
     // Use actual team member count from analytics data, fallback to 1 if not provided
     const actualTeamMembers = parseInt(teamMemberCount) || 1;
@@ -75,7 +79,7 @@ router.post('/log', authenticate, async (req, res) => {
     const userId = req.user.id;
     const { action_type, count = 1, metadata = null } = req.body;
 
-    await dbHelpers.logUsage(userId, action_type, count, metadata);
+    await logUsage(userId, action_type, count, metadata);
 
     res.json({
       success: true,

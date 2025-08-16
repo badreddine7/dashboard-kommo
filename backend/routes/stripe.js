@@ -3,7 +3,11 @@ const router = express.Router();
 const stripeService = require('../services/stripe');
 const { authenticate } = require('../middleware/auth');
 const { SUBSCRIPTION_PLANS, stripe } = require('../config/stripe-config');
-const { dbHelpers } = require('../database-pg');
+const { 
+  getSubscriptionByUserId, 
+  updateSubscription, 
+  getUserSubscription 
+} = require('../database-pg');
 const { handleWebhook, verifyWebhookSignature } = require('../services/webhooks');
 
 // Get available subscription plans
@@ -145,7 +149,7 @@ router.post('/create-portal-session', async (req, res) => {
 router.get('/subscription', authenticate, async (req, res) => {
   try {
     const userId = req.user.id;
-    const subscription = await dbHelpers.getSubscriptionByUserId(userId);
+    const subscription = await getSubscriptionByUserId(userId);
 
     if (!subscription) {
       return res.status(404).json({
@@ -207,7 +211,7 @@ router.post('/cancel-subscription', authenticate, async (req, res) => {
     // Update our database using authenticated user
     // Note: Stripe status remains 'active' but cancel_at_period_end is true
     // We set our database status to 'CANCELLED' to reflect the cancellation intent
-    await dbHelpers.updateSubscription(req.user.id, {
+    await updateSubscription(req.user.id, {
       cancelled_at: new Date(),
       cancel_at_period_end: true,
       updated_at: new Date()
@@ -238,7 +242,7 @@ router.post('/cancel-subscription', authenticate, async (req, res) => {
 router.post('/reactivate-subscription', authenticate, async (req, res) => {
   try {
     const userId = req.user.id;
-    const subscription = await dbHelpers.getSubscriptionByUserId(userId);
+    const subscription = await getSubscriptionByUserId(userId);
 
     if (!subscription || !subscription.stripe_subscription_id) {
       return res.status(404).json({
@@ -285,7 +289,7 @@ router.post('/sync-subscription', async (req, res) => {
 
     // If userId provided, get their subscription
     if (!subscriptionId && userId) {
-      const subscription = await dbHelpers.getUserSubscription(userId);
+      const subscription = await getUserSubscription(userId);
       if (!subscription || !subscription.stripe_subscription_id) {
         return res.status(404).json({
           success: false,

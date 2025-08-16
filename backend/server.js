@@ -50,7 +50,11 @@ const stripeRoutes = require('./routes/stripe');
 const usageRoutes = require('./routes/usage');
 const reportsRoutes = require('./routes/reports');
 const { authenticate, requireFeature, requireUsageLimit } = require('./middleware/auth');
-const { dbHelpers } = require('./database-pg');
+const { 
+  saveKommoTokens, 
+  getKommoTokens, 
+  logUsage
+} = require('./database-pg');
 const { syncSubscriptionStatus } = require('./services/webhooks');
 
 const CLIENT_ID = process.env.CLIENT_ID;
@@ -635,7 +639,7 @@ app.get('/kommo/callback', async (req, res) => {
 
     // Save tokens to database
     try {
-      await dbHelpers.saveKommoTokens(referer, tokens);
+      await saveKommoTokens(referer, tokens);
       logger.info('Tokens saved to database successfully', { referer });
     } catch (dbError) {
       logger.error('Failed to save tokens to database', { referer, error: dbError.message });
@@ -702,7 +706,7 @@ app.get('/api/report',
       }
 
       // Try to get tokens from database
-      let tokens = await dbHelpers.getKommoTokens(account);
+      let tokens = await getKommoTokens(account);
 
       if (!tokens) {
         logger.warn('No Kommo tokens found for account', { account, userId: req.user?.id });
@@ -732,7 +736,7 @@ app.get('/api/report',
           tokens.expires_at = Date.now() + expires_in * 1000;
           
           // Save updated tokens to database
-          await dbHelpers.saveKommoTokens(account, tokens);
+          await saveKommoTokens(account, tokens);
           
           logger.info('Token refreshed and saved to database', { account });
         } catch (err) {
@@ -754,7 +758,7 @@ app.get('/api/report',
       });
       
       // Log successful usage
-      await dbHelpers.logUsage(req.user.id, 'dashboard_view', 1, {
+      await logUsage(req.user.id, 'dashboard_view', 1, {
         account: account,
         data_points: data.reps?.length || 0
       });

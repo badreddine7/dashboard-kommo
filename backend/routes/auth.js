@@ -1,7 +1,11 @@
 const express = require('express');
 const authService = require('../services/auth');
 const { authenticate } = require('../middleware/auth');
-const { dbHelpers } = require('../database-pg'); // Added for debug endpoint
+const { 
+  getUserById, 
+  getUserSubscription, 
+  getKommoTokens 
+} = require('../database-pg');
 
 const router = express.Router();
 
@@ -247,8 +251,8 @@ router.get('/debug/:userId', authenticate, async (req, res) => {
     const userId = req.params.userId;
     
     // Get user data
-    const user = await dbHelpers.getUserById(userId);
-    const subscription = await dbHelpers.getUserSubscription(userId);
+    const user = await getUserById(userId);
+    const subscription = await getUserSubscription(userId);
     
     res.json({
       success: true,
@@ -300,7 +304,7 @@ router.post('/validate-kommo-account', async (req, res) => {
     console.log('🔍 Validating Kommo account:', cleanDomain);
 
     // Check if tokens exist for this account domain
-    const tokens = await dbHelpers.getKommoTokens(cleanDomain);
+    const tokens = await getKommoTokens(cleanDomain);
 
     if (!tokens) {
       console.log('❌ No tokens found for account:', cleanDomain);

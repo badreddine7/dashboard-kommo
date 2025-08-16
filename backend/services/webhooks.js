@@ -1,5 +1,11 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const { dbHelpers, pool } = require('../database-pg');
+const { 
+  getUserByEmail, 
+  updateUser, 
+  findUserByStripeCustomerId, 
+  updateSubscription, 
+  logUsage 
+} = require('../database-pg');
 
 // Webhook event handlers
 const webhookHandlers = {
@@ -9,7 +15,7 @@ const webhookHandlers = {
     
     try {
       // Find user by email (since customer was just created)
-      const user = await dbHelpers.getUserByEmail(customer.email);
+      const user = await getUserByEmail(customer.email);
       if (!user) {
         console.error('User not found for customer email:', customer.email);
         return;
@@ -18,7 +24,7 @@ const webhookHandlers = {
       console.log('Found user:', user.id, 'current stripe_customer_id:', user.stripe_customer_id);
 
       // Update user with the new Stripe customer ID
-      const result = await dbHelpers.updateUser(user.id, {
+      const result = await updateUser(user.id, {
         stripe_customer_id: customer.id
       });
 
@@ -34,15 +40,15 @@ const webhookHandlers = {
     console.log('Customer updated:', customer.id);
     
     try {
-      // Find user by email
-      const user = await dbHelpers.getUserByEmail(customer.email);
+          // Find user by email
+    const user = await getUserByEmail(customer.email);
       if (!user) {
         console.error('User not found for customer email:', customer.email);
         return;
       }
 
       // Update user with the Stripe customer ID
-      await dbHelpers.updateUser(user.id, {
+      await updateUser(user.id, {
         stripe_customer_id: customer.id
       });
 
@@ -104,11 +110,11 @@ const webhookHandlers = {
         console.log('✅ Subscription updated and synced successfully');
         
         // Check if this is a reactivation (cancel_at_period_end changed from true to false)
-        const user = await dbHelpers.findUserByStripeCustomerId(subscription.customer);
+        const user = await findUserByStripeCustomerId(subscription.customer);
         if (user && subscription.cancel_at_period_end === false) {
           console.log('🔄 Subscription reactivated for user:', user.id);
           // Force update to ACTIVE status
-          await dbHelpers.updateSubscription(user.id, {
+          await updateSubscription(user.id, {
             status: 'ACTIVE',
             cancel_at_period_end: false
           });
@@ -136,13 +142,13 @@ const webhookHandlers = {
     console.log('Subscription deleted:', subscription.id);
     
     try {
-      const user = await dbHelpers.findUserByStripeCustomerId(subscription.customer);
+      const user = await findUserByStripeCustomerId(subscription.customer);
       if (!user) {
         console.error('User not found for customer:', subscription.customer);
         return;
       }
 
-      await dbHelpers.updateSubscription(user.id, {
+      await updateSubscription(user.id, {
         cancelled_at: new Date(),
         cancel_at_period_end: true
       });
@@ -159,10 +165,10 @@ const webhookHandlers = {
     
     try {
       if (invoice.subscription) {
-        const user = await dbHelpers.findUserByStripeCustomerId(invoice.customer);
+        const user = await findUserByStripeCustomerId(invoice.customer);
         if (user) {
           // Log successful payment
-          await dbHelpers.logUsage(user.id, 'payment_success', {
+          await logUsage(user.id, 'payment_success', {
             invoice_id: invoice.id,
             amount: invoice.amount_paid,
             currency: invoice.currency
@@ -195,10 +201,10 @@ const webhookHandlers = {
     
     try {
       if (invoice.subscription) {
-        const user = await dbHelpers.findUserByStripeCustomerId(invoice.customer);
+        const user = await findUserByStripeCustomerId(invoice.customer);
         if (user) {
           // Log failed payment
-          await dbHelpers.logUsage(user.id, 'payment_failed', {
+          await logUsage(user.id, 'payment_failed', {
             invoice_id: invoice.id,
             amount: invoice.amount_due,
             currency: invoice.currency
@@ -271,7 +277,7 @@ async function syncSubscriptionStatus(subscriptionId) {
     console.log('Stripe subscription status:', stripeSubscription.status);
     
     // Find user by customer ID
-    const user = await dbHelpers.findUserByStripeCustomerId(stripeSubscription.customer);
+    const user = await findUserByStripeCustomerId(stripeSubscription.customer);
     if (!user) {
       console.error('User not found for customer:', stripeSubscription.customer);
       return false;
@@ -302,7 +308,7 @@ async function syncSubscriptionStatus(subscriptionId) {
     console.log('Mapped status:', mappedStatus, 'Plan type:', planType);
     
     // Update subscription in database
-    const updateResult = await dbHelpers.updateSubscription(user.id, {
+    const updateResult = await updateSubscription(user.id, {
       plan_type: planType,
       status: mappedStatus,
       stripe_subscription_id: subscriptionId,
