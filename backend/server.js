@@ -29,8 +29,8 @@ const corsOptions = {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    const allowedOrigins = process.env.NODE_ENV === 'production' 
-      ? [process.env.FRONTEND_URL, 'https://frontend-production-b728.up.railway.app', 'http://localhost:8080', 'http://localhost:5173'] 
+        const allowedOrigins = process.env.NODE_ENV === 'production' 
+      ? [process.env.FRONTEND_URL, 'https://frontend-production-fd49.up.railway.app']
       : ['http://localhost:5173', 'http://localhost:8080', 'http://localhost', 'http://127.0.0.1:8080'];
     
     if (allowedOrigins.indexOf(origin) !== -1) {
