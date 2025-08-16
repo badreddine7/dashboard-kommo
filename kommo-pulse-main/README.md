@@ -308,4 +308,4 @@ For support, create an issue in this repository or contact the development team.
 ---
 
 **Made with ❤️ for better CRM analytics and productivity**
-**MASAAF Badr Eddine**
+MASAAF Badr Eddine

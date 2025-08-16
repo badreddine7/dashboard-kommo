@@ -1,4 +1,4 @@
-const { dbHelpers } = require('../database');
+const { dbHelpers } = require('../database-pg');
 const cron = require('node-cron');
 
 // Logger utility
@@ -45,8 +45,8 @@ async function performWeeklyOptimization() {
     
     // VACUUM the database to reclaim space
     await new Promise((resolve, reject) => {
-      const { db } = require('../database');
-      db.run('VACUUM', (err) => {
+      const { pool } = require('../database-pg');
+      pool.query('VACUUM', (err) => {
         if (err) {
           logger.error('Failed to VACUUM database', { error: err.message });
           reject(err);
@@ -59,8 +59,8 @@ async function performWeeklyOptimization() {
     
     // Analyze tables for better query planning
     await new Promise((resolve, reject) => {
-      const { db } = require('../database');
-      db.run('ANALYZE', (err) => {
+      const { pool } = require('../database-pg');
+      pool.query('ANALYZE', (err) => {
         if (err) {
           logger.error('Failed to ANALYZE database', { error: err.message });
           reject(err);

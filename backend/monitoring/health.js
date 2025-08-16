@@ -1,4 +1,4 @@
-const { db } = require('../database');
+const { pool } = require('../database-pg');
 const axios = require('axios');
 
 // Health check status
@@ -13,9 +13,9 @@ async function checkDatabase() {
   try {
     const start = Date.now();
     await new Promise((resolve, reject) => {
-      db.get('SELECT 1 as test', (err, row) => {
+      pool.query('SELECT 1 as test', (err, result) => {
         if (err) reject(err);
-        else resolve(row);
+        else resolve(result.rows[0]);
       });
     });
     const duration = Date.now() - start;
@@ -102,25 +102,26 @@ function checkMemoryUsage() {
 }
 
 // Disk space check
-function checkDiskSpace() {
+async function checkDiskSpace() {
   const fs = require('fs');
   const path = require('path');
   
   try {
-    const dbPath = path.join(__dirname, '../saas.db');
-    const stats = fs.statSync(dbPath);
-    const sizeMB = stats.size / 1024 / 1024;
+    // For PostgreSQL, we'll check connection instead of file size
+    const result = await pool.query('SELECT pg_database_size(current_database()) as size');
+    const sizeBytes = parseInt(result.rows[0].size);
+    const sizeMB = sizeBytes / 1024 / 1024;
     
     return {
       status: 'healthy',
       databaseSize: `${Math.round(sizeMB * 100) / 100} MB`,
-      message: 'Disk space check passed'
+      message: 'Database connection check passed'
     };
   } catch (error) {
     return {
       status: 'unhealthy',
       error: error.message,
-      message: 'Disk space check failed'
+      message: 'Database connection check failed'
     };
   }
 }

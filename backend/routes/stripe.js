@@ -3,7 +3,7 @@ const router = express.Router();
 const stripeService = require('../services/stripe');
 const { authenticate } = require('../middleware/auth');
 const { SUBSCRIPTION_PLANS, stripe } = require('../config/stripe-config');
-const { dbHelpers } = require('../database');
+const { dbHelpers } = require('../database-pg');
 const { handleWebhook, verifyWebhookSignature } = require('../services/webhooks');
 
 // Get available subscription plans
@@ -64,8 +64,10 @@ router.post('/create-checkout-session', authenticate, async (req, res) => {
       });
     }
 
-    const successUrl = `http://localhost:8080/dashboard?payment=success&plan=${planType}&upgraded=true&welcome=true`;
-    const cancelUrl = `http://localhost:8080/pricing?canceled=true&plan=${planType}`;
+    // Use environment variable for frontend URL, fallback to localhost for Docker
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost';
+    const successUrl = `${frontendUrl}/payment-success?payment=success&plan=${planType}&upgraded=true&welcome=true`;
+    const cancelUrl = `${frontendUrl}/pricing?canceled=true&plan=${planType}`;
 
     const session = await stripeService.createCheckoutSession(
       userId,
@@ -104,9 +106,11 @@ router.post('/create-portal-session', async (req, res) => {
 
     console.log('Creating portal session for customer:', customerId);
 
+    // Use environment variable for frontend URL, fallback to localhost for Docker
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost';
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: 'http://localhost:8080/billing',
+      return_url: `${frontendUrl}/billing`,
     });
 
     console.log('Portal session created:', session.id);

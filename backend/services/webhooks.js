@@ -1,6 +1,5 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const { dbHelpers } = require('../database');
-const { db } = require('../database');
+const { dbHelpers, pool } = require('../database-pg');
 
 // Webhook event handlers
 const webhookHandlers = {
@@ -327,14 +326,9 @@ async function syncAllSubscriptions() {
   try {
     console.log('Starting auto-sync of all subscriptions...');
     
-    // Get all subscriptions from database using the correct database instance
-    const subscriptions = await new Promise((resolve, reject) => {
-      const sql = 'SELECT * FROM subscriptions WHERE stripe_subscription_id IS NOT NULL';
-      db.all(sql, (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    });
+         // Get all subscriptions from database using PostgreSQL
+     const subscriptionsResult = await pool.query('SELECT * FROM subscriptions WHERE stripe_subscription_id IS NOT NULL');
+     const subscriptions = subscriptionsResult.rows;
     
     console.log(`Found ${subscriptions.length} subscriptions to sync`);
     

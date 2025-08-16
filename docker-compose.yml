@@ -6,15 +6,20 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development  # Changed to development for local testing
       - PORT=3000
+      - FRONTEND_URL=http://localhost  # Frontend URL for Stripe redirects
+      # Database configuration comes from .env file
+      # For local testing: Use Railway PostgreSQL credentials
+      # DB_HOST=postgres.railway.internal
+      # DB_USER=postgres
+      # DB_PASSWORD=your_railway_password
+      # DB_NAME=railway
+      # DB_PORT=5432
     env_file:
-      - ./backend/.env
+      - ./backend/.env  # This file should contain Railway PostgreSQL credentials
     volumes:
       - ./backend/logs:/app/logs
-      - ./backend/saas.db:/app/saas.db
-      - ./backend/saas.db-shm:/app/saas.db-shm
-      - ./backend/saas.db-wal:/app/saas.db-wal
       - ./backend/backups:/app/backups
     networks:
       - kommo-pulse-network
@@ -35,7 +40,8 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - kommo-pulse-network
     healthcheck:

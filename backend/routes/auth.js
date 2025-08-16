@@ -1,7 +1,7 @@
 const express = require('express');
 const authService = require('../services/auth');
 const { authenticate } = require('../middleware/auth');
-const { dbHelpers } = require('../database'); // Added for debug endpoint
+const { dbHelpers } = require('../database-pg'); // Added for debug endpoint
 
 const router = express.Router();
 

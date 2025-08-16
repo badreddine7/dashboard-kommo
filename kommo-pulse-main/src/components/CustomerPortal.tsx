@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -20,8 +20,37 @@ import { useAuthStore } from '../stores/authStore';
 const CustomerPortal: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [cancelling, setCancelling] = useState(false);
   const { user, subscription, api, refreshSubscription } = useAuthStore();
+
+  // Auto-sync subscription status when component mounts
+  useEffect(() => {
+    const autoSyncSubscription = async () => {
+      if (subscription?.stripe_subscription_id) {
+        try {
+          console.log('🔄 Auto-syncing subscription status for billing page...');
+          
+          // Call the sync endpoint
+          const response = await api.post('/stripe/sync-subscription', {
+            subscriptionId: subscription.stripe_subscription_id
+          });
+          
+          if (response.data.success) {
+            console.log('✅ Subscription auto-synced successfully');
+            
+            // Refresh subscription data
+            await refreshSubscription();
+          } else {
+            console.warn('⚠️ Subscription auto-sync failed:', response.data.message);
+          }
+        } catch (error: any) {
+          console.error('❌ Error auto-syncing subscription:', error);
+          // Don't show error to user, just log it
+        }
+      }
+    };
+
+    autoSyncSubscription();
+  }, [subscription?.stripe_subscription_id, api, refreshSubscription]);
 
   const handleManageBilling = async () => {
     // Check if we have a subscription with Stripe subscription ID
@@ -67,41 +96,7 @@ const CustomerPortal: React.FC = () => {
     }
   };
 
-  const handleCancelSubscription = async () => {
-    if (!subscription?.stripe_subscription_id) {
-      setError('No subscription found to cancel.');
-      return;
-    }
 
-    if (!confirm('Are you sure you want to cancel your subscription? You will lose access to premium features at the end of your current billing period.')) {
-      return;
-    }
-
-    setCancelling(true);
-    setError(null);
-
-    try {
-      console.log('Cancelling subscription:', subscription.stripe_subscription_id);
-      
-      const response = await api.post('/stripe/cancel-subscription', {
-        subscriptionId: subscription.stripe_subscription_id
-      });
-
-      console.log('Cancel response:', response.data);
-
-      if (response.data.success) {
-        await refreshSubscription();
-        alert('Subscription cancelled successfully. You will have access until the end of your current billing period.');
-      } else {
-        setError(response.data.message || 'Failed to cancel subscription');
-      }
-    } catch (error: any) {
-      console.error('Error cancelling subscription:', error);
-      setError(error.response?.data?.message || 'Failed to cancel subscription');
-    } finally {
-      setCancelling(false);
-    }
-  };
 
   // Get effective status considering cancel_at_period_end
   const getEffectiveStatus = () => {
@@ -247,23 +242,7 @@ const CustomerPortal: React.FC = () => {
                 </div>
               )}
 
-              {subscription?.plan_type === 'ENTERPRISE' && !subscription?.cancel_at_period_end && (
-                <div className="pt-4 border-t">
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleCancelSubscription}
-                    disabled={cancelling}
-                    className="w-full"
-                  >
-                    <XCircle className="h-4 w-4 mr-2" />
-                    {cancelling ? 'Cancelling...' : 'Cancel Subscription'}
-                  </Button>
-                  <p className="text-xs text-muted-foreground mt-2 text-center">
-                    You'll have access until the end of your current billing period
-                  </p>
-                </div>
-              )}
+              
 
               {subscription?.cancel_at_period_end && (
                 <div className="pt-4 border-t">

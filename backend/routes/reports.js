@@ -1,6 +1,6 @@
 const express = require('express');
 const { authenticate } = require('../middleware/auth');
-const { dbHelpers } = require('../database');
+const { dbHelpers } = require('../database-pg');
 const router = express.Router();
 
 // Generate report

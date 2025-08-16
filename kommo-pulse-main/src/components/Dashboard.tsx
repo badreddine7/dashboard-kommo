@@ -51,7 +51,7 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ account }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { refreshSubscription, api } = useAuthStore();
+  const { refreshSubscription, api, subscription } = useAuthStore();
   const { repId } = useParams<{ repId: string }>();
   const location = useLocation();
   const accountFromState = location.state?.account;
@@ -61,6 +61,36 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
   const { data, loading, error, refetch } = useAnalytics(accountToUse);
   const { settings } = useDashboard();
   const [selectedUser, setSelectedUser] = useState<string>(repId || '');
+
+  // Auto-sync subscription status when component mounts
+  useEffect(() => {
+    const autoSyncSubscription = async () => {
+      if (subscription?.stripe_subscription_id) {
+        try {
+          console.log('🔄 Auto-syncing subscription status for dashboard...');
+          
+          // Call the sync endpoint
+          const response = await api.post('/stripe/sync-subscription', {
+            subscriptionId: subscription.stripe_subscription_id
+          });
+          
+          if (response.data.success) {
+            console.log('✅ Subscription auto-synced successfully');
+            
+            // Refresh subscription data
+            await refreshSubscription();
+          } else {
+            console.warn('⚠️ Subscription auto-sync failed:', response.data.message);
+          }
+        } catch (error: any) {
+          console.error('❌ Error auto-syncing subscription:', error);
+          // Don't show error to user, just log it
+        }
+      }
+    };
+
+    autoSyncSubscription();
+  }, [subscription?.stripe_subscription_id, api, refreshSubscription]);
 
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [paymentDetails, setPaymentDetails] = useState<{

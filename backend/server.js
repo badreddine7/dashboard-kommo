@@ -50,7 +50,7 @@ const stripeRoutes = require('./routes/stripe');
 const usageRoutes = require('./routes/usage');
 const reportsRoutes = require('./routes/reports');
 const { authenticate, requireFeature, requireUsageLimit } = require('./middleware/auth');
-const { dbHelpers } = require('./database');
+const { dbHelpers } = require('./database-pg');
 const { syncSubscriptionStatus } = require('./services/webhooks');
 
 const CLIENT_ID = process.env.CLIENT_ID;
@@ -585,6 +585,16 @@ app.use('/api/usage', usageRoutes);
 
 // Reports routes
 app.use('/api/reports', reportsRoutes);
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
 
 // Endpoint for Kommo OAuth callback
 app.get('/kommo/callback', async (req, res) => {

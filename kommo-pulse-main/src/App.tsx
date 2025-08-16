@@ -16,6 +16,7 @@ import CustomerPortal from "./components/CustomerPortal";
 import LandingPage from "./pages/LandingPage";
 import GeneralDashboard from "./components/GeneralDashboard";
 import Dashboard from "./components/Dashboard";
+import PaymentSuccess from "./components/PaymentSuccess";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +61,11 @@ const App = () => (
                   <Route path="/billing" element={
                     <ProtectedRoute>
                       <CustomerPortal />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/payment-success" element={
+                    <ProtectedRoute>
+                      <PaymentSuccess />
                     </ProtectedRoute>
                   } />
                   

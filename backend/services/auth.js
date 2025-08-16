@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
-const { dbHelpers } = require('../database');
+const { dbHelpers } = require('../database-pg');
 const { getTrialEndDate } = require('../config/subscription-tiers');
 
 // JWT configuration

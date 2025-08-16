@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticate } = require('../middleware/auth');
-const { dbHelpers } = require('../database');
+const { dbHelpers } = require('../database-pg');
 const { SUBSCRIPTION_TIERS } = require('../config/subscription-tiers');
 
 // Get user's usage statistics

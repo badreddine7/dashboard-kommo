@@ -63,7 +63,7 @@ A production-ready, feature-rich CRM analytics dashboard for Kommo (formerly Amo
 ### Backend
 - **Node.js** - JavaScript runtime
 - **Express.js** - Web application framework
-- **SQLite** - High-performance database with WAL mode
+- **PostgreSQL** - Production-ready database with enhanced logging and backup
 - **JWT** - JSON Web Tokens for authentication
 - **bcryptjs** - Password hashing
 - **Stripe** - Payment processing

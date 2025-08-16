@@ -1,5 +1,5 @@
 const authService = require('../services/auth');
-const { dbHelpers } = require('../database');
+const { dbHelpers } = require('../database-pg');
 const { getSubscriptionStatus, hasFeatureAccess, isWithinLimit } = require('../config/subscription-tiers');
 
 // Authentication middleware
@@ -96,7 +96,7 @@ const requireActiveSubscription = (req, res, next) => {
     console.log('🔄 Auto-updating cancelled subscription to EXPIRED for user:', req.user.id);
     
     // Update the subscription status in the database
-    const { dbHelpers } = require('../database');
+    const { dbHelpers } = require('../database-pg');
     dbHelpers.updateSubscription(req.user.id, {
       status: 'EXPIRED',
       updated_at: new Date()
@@ -153,9 +153,9 @@ const requireFeature = (featureName) => {
     if (status === 'CANCELLED' && currentPeriodEnd && now > currentPeriodEnd) {
       console.log('🔄 Auto-updating cancelled subscription to EXPIRED for user:', req.user.id);
       
-      // Update the subscription status in the database
-      const { dbHelpers } = require('../database');
-      dbHelpers.updateSubscription(req.user.id, {
+          // Update the subscription status in the database
+    const { dbHelpers } = require('../database-pg');
+    dbHelpers.updateSubscription(req.user.id, {
         status: 'EXPIRED',
         updated_at: new Date()
       }).then(() => {

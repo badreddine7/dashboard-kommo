@@ -77,7 +77,7 @@ interface SalesRep {
 const GeneralDashboard: React.FC<GeneralDashboardProps> = ({ account }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { refreshSubscription, api } = useAuthStore();
+  const { refreshSubscription, api, subscription } = useAuthStore();
   const accountToUse = account || user?.kommo_account || '';
   const { data, loading, error, refetch } = useAnalytics(accountToUse);
   const { settings } = useDashboard();
@@ -85,6 +85,36 @@ const GeneralDashboard: React.FC<GeneralDashboardProps> = ({ account }) => {
   const [selectedRep, setSelectedRep] = useState<string>('');
   const [sortBy, setSortBy] = useState<'revenue' | 'deals' | 'conversion' | 'activity'>('revenue');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+
+  // Auto-sync subscription status when component mounts
+  useEffect(() => {
+    const autoSyncSubscription = async () => {
+      if (subscription?.stripe_subscription_id) {
+        try {
+          console.log('🔄 Auto-syncing subscription status for general dashboard...');
+          
+          // Call the sync endpoint
+          const response = await api.post('/stripe/sync-subscription', {
+            subscriptionId: subscription.stripe_subscription_id
+          });
+          
+          if (response.data.success) {
+            console.log('✅ Subscription auto-synced successfully');
+            
+            // Refresh subscription data
+            await refreshSubscription();
+          } else {
+            console.warn('⚠️ Subscription auto-sync failed:', response.data.message);
+          }
+        } catch (error: any) {
+          console.error('❌ Error auto-syncing subscription:', error);
+          // Don't show error to user, just log it
+        }
+      }
+    };
+
+    autoSyncSubscription();
+  }, [subscription?.stripe_subscription_id, api, refreshSubscription]);
 
   // Mock data for demonstration - in real app this would come from the API
   const [salesReps, setSalesReps] = useState<SalesRep[]>([]);

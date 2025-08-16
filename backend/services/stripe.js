@@ -1,5 +1,5 @@
 const { stripe, SUBSCRIPTION_PLANS } = require('../config/stripe-config');
-const { dbHelpers } = require('../database');
+const { dbHelpers } = require('../database-pg');
 
 class StripeService {
   // Create a checkout session for subscription
