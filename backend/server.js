@@ -30,7 +30,7 @@ const corsOptions = {
     if (!origin) return callback(null, true);
     
     const allowedOrigins = process.env.NODE_ENV === 'production' 
-      ? [process.env.FRONTEND_URL, 'https://yourdomain.com'] 
+      ? [process.env.FRONTEND_URL, 'https://frontend-production-b728.up.railway.app', 'http://localhost:8080', 'http://localhost:5173'] 
       : ['http://localhost:5173', 'http://localhost:8080', 'http://localhost', 'http://127.0.0.1:8080'];
     
     if (allowedOrigins.indexOf(origin) !== -1) {
