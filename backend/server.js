@@ -50,13 +50,14 @@ const stripeRoutes = require('./routes/stripe');
 const usageRoutes = require('./routes/usage');
 const reportsRoutes = require('./routes/reports');
 const { authenticate, requireFeature, requireUsageLimit } = require('./middleware/auth');
-const { validateUserId } = require('./middleware/validation');
+const { validateUserId, validateQuery } = require('./middleware/validation');
 const {
   saveKommoTokens,
   getKommoTokens,
   logUsage
 } = require('./database-pg');
 const { syncSubscriptionStatus } = require('./services/webhooks');
+const { kommoCallbackQuerySchema } = require('./validation/schemas');
 
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
@@ -602,15 +603,10 @@ app.get('/health', (req, res) => {
 });
 
 // Endpoint for Kommo OAuth callback
-app.get('/kommo/callback', async (req, res) => {
+app.get('/kommo/callback', validateQuery(kommoCallbackQuerySchema), async (req, res) => {
   const { code, referer, state } = req.query;
   
   logger.info('OAuth callback received', { referer, hasCode: !!code, hasState: !!state });
-  
-  if (!code || !referer) {
-    logger.error('OAuth callback missing required parameters', { code: !!code, referer: !!referer });
-    return res.status(400).send('Missing code or referer');
-  }
 
   try {
     logger.debug('Exchanging authorization code for tokens', { referer });

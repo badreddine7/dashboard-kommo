@@ -5,7 +5,10 @@ const { authenticate } = require('../middleware/auth');
 const { validateBody, validateUserId } = require('../middleware/validation');
 const { 
   stripeCheckoutSchema,
-  stripePortalSchema
+  stripePortalSchema,
+  stripeCustomerIdSchema,
+  stripeSubscriptionIdSchema,
+  stripeSyncSchema
 } = require('../validation/schemas');
 const { SUBSCRIPTION_PLANS, stripe } = require('../config/stripe-config');
 const { 
@@ -95,16 +98,9 @@ router.post('/create-checkout-session', authenticate, validateUserId, validateBo
 });
 
 // Create customer portal session
-router.post('/create-portal-session', async (req, res) => {
+router.post('/create-portal-session', validateBody(stripeCustomerIdSchema), async (req, res) => {
   try {
     const { customerId } = req.body;
-    
-    if (!customerId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Customer ID is required'
-      });
-    }
 
     console.log('Creating portal session for customer:', customerId);
 
@@ -144,7 +140,7 @@ router.post('/create-portal-session', async (req, res) => {
 });
 
 // Get user's subscription details
-router.get('/subscription', authenticate, async (req, res) => {
+router.get('/subscription', authenticate, validateUserId, async (req, res) => {
   try {
     const userId = req.user.id;
     const subscription = await getSubscriptionByUserId(userId);
@@ -183,16 +179,9 @@ router.get('/subscription', authenticate, async (req, res) => {
 });
 
 // Cancel subscription endpoint
-router.post('/cancel-subscription', authenticate, async (req, res) => {
+router.post('/cancel-subscription', authenticate, validateUserId, validateBody(stripeSubscriptionIdSchema), async (req, res) => {
   try {
     const { subscriptionId } = req.body;
-    
-    if (!subscriptionId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Subscription ID is required'
-      });
-    }
 
     console.log('Cancelling subscription:', subscriptionId);
 
@@ -237,7 +226,7 @@ router.post('/cancel-subscription', authenticate, async (req, res) => {
 });
 
 // Reactivate subscription
-router.post('/reactivate-subscription', authenticate, async (req, res) => {
+router.post('/reactivate-subscription', authenticate, validateUserId, async (req, res) => {
   try {
     const userId = req.user.id;
     const subscription = await getSubscriptionByUserId(userId);
@@ -272,16 +261,9 @@ router.post('/reactivate-subscription', authenticate, async (req, res) => {
 
 
 // Dynamic subscription sync endpoint
-router.post('/sync-subscription', async (req, res) => {
+router.post('/sync-subscription', validateBody(stripeSyncSchema), async (req, res) => {
   try {
     const { subscriptionId, userId } = req.body;
-    
-    if (!subscriptionId && !userId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Either subscriptionId or userId is required'
-      });
-    }
 
     let targetSubscriptionId = subscriptionId;
 

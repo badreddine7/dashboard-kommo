@@ -1,14 +1,15 @@
 const express = require('express');
 const authService = require('../services/auth');
 const { authenticate } = require('../middleware/auth');
-const { validateBody, validateUserId } = require('../middleware/validation');
+const { validateBody, validateUserId, validateParams } = require('../middleware/validation');
 const { 
   userCreateSchema,
   userLoginSchema,
   refreshTokenSchema,
   userUpdateSchema,
   passwordChangeSchema,
-  kommoAccountValidationSchema
+  kommoAccountValidationSchema,
+  userIdParamSchema
 } = require('../validation/schemas');
 const { 
   getUserById, 
@@ -210,7 +211,7 @@ router.get('/validate', authenticate, validateUserId, async (req, res) => {
 });
 
 // Debug endpoint to check user data
-router.get('/debug/:userId', authenticate, validateUserId, async (req, res) => {
+router.get('/debug/:userId', authenticate, validateUserId, validateParams(userIdParamSchema), async (req, res) => {
   try {
     const userId = req.params.userId;
     

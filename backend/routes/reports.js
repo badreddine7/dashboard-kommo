@@ -135,7 +135,7 @@ router.post('/generate', authenticate, validateUserId, validateBody(reportGenera
 });
 
 // Get report history
-router.get('/history', authenticate, async (req, res) => {
+router.get('/history', authenticate, validateUserId, async (req, res) => {
   try {
     const reports = await getUserReports(req.user.id);
     const stats = await getReportStats(req.user.id);
@@ -164,7 +164,7 @@ router.get('/history', authenticate, async (req, res) => {
 });
 
 // Get report statistics
-router.get('/stats', authenticate, async (req, res) => {
+router.get('/stats', authenticate, validateUserId, async (req, res) => {
   try {
     const stats = await getReportStats(req.user.id);
     
@@ -188,7 +188,7 @@ router.get('/stats', authenticate, async (req, res) => {
 });
 
 // Clear cache for user
-router.post('/clear-cache', authenticate, async (req, res) => {
+router.post('/clear-cache', authenticate, validateUserId, async (req, res) => {
   try {
     const user = await getUserById(req.user.id);
     if (!user || !user.kommo_account) {
