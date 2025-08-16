@@ -1,0 +1,14 @@
+# Ignore everything by default
+*
+
+# Only include backend files for backend service
+!backend/
+!backend/**
+
+# Only include frontend files for frontend service  
+!kommo-pulse-main/
+!kommo-pulse-main/**
+
+# Include shared configuration files
+!README.md
+!.gitignore
