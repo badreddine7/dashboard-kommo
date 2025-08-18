@@ -187,6 +187,15 @@ const kommoAccountSchema = z.object({
   account_domain: z.string().min(1, 'Account domain is required')
 });
 
+const kommoCallbackQuerySchema = z.object({
+  code: z.string().min(1, 'Authorization code is required'),
+  referer: z.string().min(1, 'Referer is required'),
+  state: z.string().optional(),
+  platform: z.string().optional(),
+  client_id: z.string().optional(),
+  from_widget: z.string().optional()
+});
+
 // ============================================================================
 // REQUEST VALIDATION SCHEMAS
 // ============================================================================
@@ -283,6 +292,7 @@ module.exports = {
   // Kommo schemas
   kommoTokensSchema,
   kommoAccountSchema,
+  kommoCallbackQuerySchema,
   
   // Request schemas
   requestUserSchema,
