@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 interface PerformanceInsightsCardProps {
   repData: {
@@ -78,16 +79,19 @@ const PerformanceInsightsCard: React.FC<PerformanceInsightsCardProps> = ({ repDa
   const performanceGrade = getPerformanceGrade(overallScore);
 
   return (
-    <Card className="bg-gradient-card shadow-elegant border-border/50">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-sm font-medium">
-          <Award className="h-4 w-4 text-purple-500" />
-          Performance Insights
-        </CardTitle>
-        <CardDescription className="text-xs">
-          Key metrics and performance analysis
-        </CardDescription>
-      </CardHeader>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Card className="bg-gradient-card shadow-elegant border-border/50">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <Award className="h-4 w-4 text-purple-500" />
+                Performance Insights
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Key metrics and performance analysis
+              </CardDescription>
+            </CardHeader>
              <CardContent className="p-4 space-y-4">
          {/* Top Row: Performance Grade and Quick Stats */}
          <div className="flex items-center justify-between">
@@ -193,7 +197,18 @@ const PerformanceInsightsCard: React.FC<PerformanceInsightsCardProps> = ({ repDa
            )}
          </div>
        </CardContent>
-    </Card>
+        </Card>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs p-3">
+          <p className="text-sm">
+            Performance insights based on data from the last 6 months. The overall grade combines win rate, 
+            task completion, SQL rate, appointment rate, attendance rate, and sale rate. 
+            To improve performance: focus on lead qualification, complete tasks on time, schedule and attend meetings, 
+            and maintain high conversion rates throughout the sales funnel.
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { Phone, PhoneIncoming, PhoneOutgoing } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 interface CallsCardProps {
   calls: {
@@ -15,16 +16,19 @@ const CallsCard: React.FC<CallsCardProps> = ({ calls }) => {
   const { incoming, outgoing, total } = calls;
 
   return (
-    <Card className="bg-gradient-card shadow-elegant border-border/50">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-sm font-medium">
-          <Phone className="h-4 w-4 text-blue-500" />
-          Call Activity
-        </CardTitle>
-        <CardDescription className="text-xs">
-          Incoming and outgoing calls
-        </CardDescription>
-      </CardHeader>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Card className="bg-gradient-card shadow-elegant border-border/50">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <Phone className="h-4 w-4 text-blue-500" />
+                Call Activity
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Incoming and outgoing calls
+              </CardDescription>
+            </CardHeader>
       <CardContent className="space-y-4">
         {/* Total Calls */}
         <div className="text-center">
@@ -64,7 +68,17 @@ const CallsCard: React.FC<CallsCardProps> = ({ calls }) => {
           </Badge>
         </div>
       </CardContent>
-    </Card>
+        </Card>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs p-3">
+          <p className="text-sm">
+            Call activity for the last 1 month. Tracks incoming and outgoing call events from Kommo. 
+            To improve this metric: log all calls in Kommo, use call tracking features, record call outcomes, 
+            and ensure proper call documentation for better analytics.
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
 

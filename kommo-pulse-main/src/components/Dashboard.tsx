@@ -595,7 +595,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
                 value: Math.round(currentUser.incoming_leads.total * 5), // Mock trend
                 label: "vs last month"
               }}
-              tooltip="The total number of leads assigned to this user. This includes leads in all stages of the sales pipeline, from initial contact to closed deals."
+              tooltip="The total number of leads assigned to this user in the last 6 months. This includes leads in all stages of the sales pipeline, from initial contact to closed deals. To improve this metric in Kommo: ensure leads are properly assigned to responsible users, regularly update lead status, and maintain accurate contact information."
             />
             <MetricCard
               title="Win Rate"
@@ -603,14 +603,14 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               icon={Target}
               variant="success"
               subtitle={`${currentUser.won_leads} won / ${currentUser.lost_leads} lost`}
-              tooltip="The percentage of leads that were successfully closed as won deals. A higher win rate indicates better conversion efficiency and sales performance."
+              tooltip="The percentage of leads that were successfully closed as won deals in the last 6 months. Calculated as: (Won Leads ÷ Total Leads) × 100. To improve this metric in Kommo: focus on lead qualification, follow up consistently, update lead status to 'Won' (status_id: 142) when deals close, and ensure proper pipeline management."
             />
             <MetricCard
               title="Avg Cycle Time"
               value={currentUser.avg_cycle_days ? `${currentUser.avg_cycle_days.toFixed(1)} days` : 'N/A'}
               icon={Clock}
               variant="default"
-              tooltip="The average time it takes for a lead to move through the entire sales pipeline from creation to closure. Shorter cycle times indicate more efficient sales processes."
+              tooltip="The average time it takes for a lead to move through the entire sales pipeline from creation to closure in the last 6 months. Calculated as: (Updated Date - Created Date) for closed leads. To improve this metric in Kommo: set realistic deadlines, move leads through pipeline stages promptly, update lead status regularly, and use automation to reduce manual delays."
             />
             <MetricCard
               title="Task Completion"
@@ -618,7 +618,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               icon={CheckCircle}
               variant="warning"
               subtitle={`${currentUser.completed_tasks}/${currentUser.tasks.created} tasks`}
-              tooltip="The percentage of created tasks that have been completed. This metric indicates how well the user follows through on planned activities and commitments."
+              tooltip="The percentage of created tasks that have been completed in the last 1 month. Calculated as: (Completed Tasks ÷ Created Tasks) × 100. To improve this metric in Kommo: mark tasks as completed when finished, set realistic due dates, prioritize tasks effectively, and use task reminders and notifications."
             />
           </section>
         )}
@@ -675,14 +675,14 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               value={currentUser.avg_deal_size ? `$${currentUser.avg_deal_size.toLocaleString()}` : 'N/A'}
               icon={DollarSign}
               variant="success"
-              tooltip="The average monetary value of successfully closed deals. This metric helps assess the quality of leads and the user's ability to close high-value opportunities."
+              tooltip="The average monetary value of successfully closed deals in the last 6 months. Calculated from custom fields with 'Budget' or 'Value' in the name for won leads. To improve this metric in Kommo: create custom fields for deal value/budget, ensure they're filled for all leads, focus on high-value prospects, and track deal values consistently."
             />
             <MetricCard
               title="Activities"
               value={currentUser.events_count.toLocaleString()}
               icon={BarChart3}
               variant="accent"
-              tooltip="The total number of activities performed by this user in the CRM over the last 7 days. Activities include calls, emails, notes, status updates, and other interactions."
+              tooltip="The total number of activities performed by this user in the CRM over the last 7 days. Activities include calls, emails, notes, status updates, and other interactions. To improve this metric in Kommo: log all customer interactions, create notes for important conversations, update lead status when changes occur, and use the activity feed to track all touchpoints."
             />
             <MetricCard
               title="Communication"
@@ -690,7 +690,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               icon={MessageSquare}
               variant="default"
               subtitle="Total messages sent"
-              tooltip="The combined total of all outgoing communications including chat messages, emails, and SMS. This indicates the user's engagement level with leads and prospects."
+              tooltip="The combined total of all outgoing communications including chat messages, emails, and SMS in the last 1 month. To improve this metric in Kommo: send follow-up emails after calls, use chat for quick responses, send SMS for urgent matters, and ensure all communications are logged in the CRM for tracking."
             />
           </section>
         )}
@@ -708,7 +708,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               icon={ListTodo}
               variant="accent"
               subtitle="Total tasks created"
-              tooltip="The total number of tasks created by or assigned to this user. This shows the user's activity level in planning and organizing their work."
+              tooltip="The total number of tasks created by or assigned to this user in the last 1 month. This shows the user's activity level in planning and organizing their work. To improve this metric in Kommo: create tasks for all follow-up activities, set specific due dates, assign tasks to appropriate team members, and use task templates for common activities."
             />
             <MetricCard
               title="Tasks Completed"
@@ -716,7 +716,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               icon={CheckCircle}
               variant="success"
               subtitle={`${currentUser.tasks.created > 0 ? ((currentUser.tasks.completed / currentUser.tasks.created) * 100).toFixed(1) : '0'}% completion rate`}
-              tooltip="The number of tasks that have been marked as completed. A high completion rate indicates good follow-through and task management skills."
+              tooltip="The number of tasks that have been marked as completed in the last 1 month. A high completion rate indicates good follow-through and task management skills. To improve this metric in Kommo: mark tasks as completed when finished, review task list regularly, prioritize important tasks, and use task status updates to track progress."
             />
             <MetricCard
               title="Overdue Tasks"
@@ -724,7 +724,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               icon={AlertTriangle}
               variant="warning"
               subtitle="Tasks past due date"
-              tooltip="Tasks that have passed their due date without being completed. High numbers may indicate workload management issues or unrealistic deadlines."
+              tooltip="Tasks that have passed their due date without being completed in the last 1 month. High numbers may indicate workload management issues or unrealistic deadlines. To improve this metric in Kommo: set realistic due dates, prioritize urgent tasks, reschedule tasks when needed, and regularly review overdue task lists."
             />
           </section>
         )}
@@ -742,7 +742,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               icon={FileText}
               variant="warning"
               subtitle="Leads with missing required fields"
-              tooltip="Number of leads that are missing required custom field data for their current pipeline stage. Complete data is essential for accurate reporting and lead qualification."
+              tooltip="Number of leads that are missing required custom field data for their current pipeline stage in the last 6 months. Complete data is essential for accurate reporting and lead qualification. To improve this metric in Kommo: configure required fields for each pipeline stage, ensure team members fill all required fields, use field validation, and regularly audit lead data quality."
             />
             <MetricCard
               title="Missing Fields"
@@ -750,7 +750,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               icon={AlertTriangle}
               variant="destructive"
               subtitle="Total required fields not filled"
-              tooltip="The total count of individual required fields that are missing data across all leads. Reducing this number improves data quality and reporting accuracy."
+              tooltip="The total count of individual required fields that are missing data across all leads in the last 6 months. Reducing this number improves data quality and reporting accuracy. To improve this metric in Kommo: identify which fields are most commonly missing, provide training on field importance, use automation to pre-fill fields where possible, and implement mandatory field requirements."
             />
           </section>
         )}
@@ -807,7 +807,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               icon={Target}
               variant="success"
               subtitle={`${currentUser.sales_funnel.sql_leads} SQL leads`}
-              tooltip="Sales Qualified Lead rate - the percentage of leads that have been qualified as having genuine sales potential. This excludes unreachable leads and those marked as not sales-qualified."
+              tooltip="Sales Qualified Lead rate - the percentage of leads that have been qualified as having genuine sales potential in the last 6 months. Calculated as: (SQL Leads ÷ (Total Leads - Unreachable - Not SQL)) × 100. To improve this metric in Kommo: use the 'SQL' tag for qualified leads, mark leads as 'Unreachable' or 'Not SQL' when appropriate, implement proper lead scoring, and train team on qualification criteria."
             />
             <MetricCard
               title="Appointment Rate"
@@ -815,7 +815,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               icon={Calendar}
               variant="accent"
               subtitle={`${currentUser.sales_funnel.appointments} scheduled`}
-              tooltip="The percentage of SQL leads that resulted in scheduled appointments or meetings. This measures the effectiveness of initial qualification and outreach efforts."
+              tooltip="The percentage of SQL leads that resulted in scheduled appointments or meetings in the last 1 month. Calculated as: (Scheduled Appointments ÷ SQL Leads) × 100. To improve this metric in Kommo: create meeting tasks (task_type_id: 2) for SQL leads, ensure proper follow-up scheduling, use calendar integration, and track appointment outcomes consistently."
             />
             <MetricCard
               title="Attendance Rate"
@@ -823,21 +823,21 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               icon={CheckCircle}
               variant="warning"
               subtitle={`${currentUser.sales_funnel.attended} attended`}
-              tooltip="The percentage of scheduled appointments that were actually attended by the prospect. Low attendance rates may indicate poor qualification or scheduling practices."
+              tooltip="The percentage of scheduled appointments that were actually attended by the prospect in the last 1 month. Calculated as: (Attended Appointments ÷ Scheduled Appointments) × 100. To improve this metric in Kommo: send appointment reminders, confirm meetings in advance, reschedule when needed, and mark meeting tasks as completed when attended."
             />
             <MetricCard
               title="Sale Rate"
               value={`${(currentUser.sales_funnel.sale_rate * 100).toFixed(1)}%`}
               icon={TrendingUp}
               variant="success"
-              tooltip="The percentage of attended appointments that resulted in closed-won deals. This is the final conversion rate in the sales funnel and indicates closing effectiveness."
+              tooltip="The percentage of attended appointments that resulted in closed-won deals in the last 6 months. Calculated as: (Won Deals ÷ Attended Appointments) × 100. To improve this metric in Kommo: focus on closing techniques, prepare thoroughly for meetings, follow up after appointments, and ensure leads are moved to 'Won' status (status_id: 142) when deals close."
             />
             <MetricCard
               title="Pipeline Health"
               value={`${(currentUser.sales_funnel.overall_funnel_rate * 100).toFixed(1)}%`}
               icon={PieChart}
               variant="accent"
-              tooltip="The overall conversion rate from total leads to closed-won deals. This metric provides a holistic view of the entire sales process efficiency from start to finish."
+              tooltip="The overall conversion rate from total leads to closed-won deals in the last 6 months. Calculated as: (Won Deals ÷ Total Leads) × 100. This metric provides a holistic view of the entire sales process efficiency from start to finish. To improve this metric in Kommo: optimize each stage of the sales funnel, improve lead quality, enhance follow-up processes, and ensure consistent pipeline management practices."
             />
           </section>
         )}
