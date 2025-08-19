@@ -33,13 +33,6 @@ const corsOptions = {
       ? [process.env.FRONTEND_URL, 'https://frontend-production-fd49.up.railway.app']
       : ['http://localhost:5173', 'http://localhost:8080', 'http://localhost', 'http://127.0.0.1:8080'];
     
-    // Debug CORS
-    console.log('CORS Debug:', { 
-      origin, 
-      nodeEnv: process.env.NODE_ENV,
-      allowedOrigins 
-    });
-    
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -48,9 +41,7 @@ const corsOptions = {
     }
   },
   credentials: true,
-  optionsSuccessStatus: 200,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  optionsSuccessStatus: 200
 };
 
 // Import authentication system
@@ -583,20 +574,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Apply CORS middleware
 app.use(cors(corsOptions));
-
-// Additional CORS headers for preflight requests
-app.options('*', cors(corsOptions));
-
-// Add CORS headers to all responses
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin);
-  res.header('Access-Control-Allow-Credentials', true);
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  next();
-});
 
 // Configure body parsing - raw for webhooks, JSON for everything else
 app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
