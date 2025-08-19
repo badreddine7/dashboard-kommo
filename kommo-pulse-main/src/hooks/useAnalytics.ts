@@ -111,9 +111,13 @@ export const useAnalytics = (account: string) => {
       }
       
       console.log('📡 Making API request to:', `/report?account=${account}`);
+      console.log('🔍 API base URL:', api.defaults.baseURL);
+      console.log('🔍 Auth headers:', api.defaults.headers.common);
       
-      // Use authenticated API instance
-      const response = await api.get(`/report?account=${account}`);
+      // Use authenticated API instance with timeout
+      const response = await api.get(`/report?account=${account}`, {
+        timeout: 30000 // 30 second timeout
+      });
       console.log('✅ Analytics response:', response.data);
       
       // Store in cache
