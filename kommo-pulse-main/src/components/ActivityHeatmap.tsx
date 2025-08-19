@@ -6,13 +6,13 @@ interface ActivityHeatmapProps {
 }
 
 const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ data, className }) => {
-  // Generate last 90 days in a proper grid format
+  // Generate last 30 days in a proper grid format
   const generateHeatmapData = () => {
     const today = new Date();
     const days = [];
     
-    // Start from 89 days ago to today
-    for (let i = 89; i >= 0; i--) {
+    // Start from 29 days ago to today
+    for (let i = 29; i >= 0; i--) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
       const dateStr = date.toISOString().split('T')[0];
@@ -22,7 +22,7 @@ const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ data, className }) =>
         date: dateStr,
         count: data[dateStr] || 0,
         dayOfWeek,
-        week: Math.floor((89 - i) / 7)
+        week: Math.floor((29 - i) / 7)
       });
     }
     
@@ -56,8 +56,8 @@ const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ data, className }) =>
     return `${count} activities on ${formattedDate}`;
   };
 
-  // Create a 7x13 grid (7 days x 13 weeks)
-  const weeks = 13;
+  // Create a 7x5 grid (7 days x 5 weeks for 30 days)
+  const weeks = 5;
   const daysPerWeek = 7;
 
   // Day labels
@@ -66,7 +66,7 @@ const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ data, className }) =>
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-muted-foreground">Activity over the last 90 days</h3>
+        <h3 className="text-sm font-medium text-muted-foreground">Activity over the last 30 days</h3>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>Less</span>
           <div className="flex gap-1">
@@ -116,7 +116,7 @@ const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ data, className }) =>
         {hasActivity ? (
           <>Total activities: {Object.values(data).reduce((sum, count) => sum + count, 0).toLocaleString()}</>
         ) : (
-          <>No activity recorded in the last 90 days</>
+          <>No activity recorded in the last 30 days</>
         )}
       </div>
     </div>

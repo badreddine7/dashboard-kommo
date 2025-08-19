@@ -1,0 +1,27 @@
+[1mdiff --git a/kommo-pulse-main/src/components/UsageTracker.tsx b/kommo-pulse-main/src/components/UsageTracker.tsx[m
+[1mindex 6b33d73..fbd3b3b 100644[m
+[1m--- a/kommo-pulse-main/src/components/UsageTracker.tsx[m
+[1m+++ b/kommo-pulse-main/src/components/UsageTracker.tsx[m
+[36m@@ -1,4 +1,5 @@[m
+ import React, { useState, useEffect } from 'react';[m
+[32m+[m[32mimport { useNavigate } from 'react-router-dom';[m
+ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';[m
+ import { Progress } from './ui/progress';[m
+ import { Badge } from './ui/badge';[m
+[36m@@ -32,6 +33,7 @@[m [minterface UsageData {[m
+ }[m
+ [m
+ const UsageTracker: React.FC = () => {[m
+[32m+[m[32m  const navigate = useNavigate();[m
+   const [usageData, setUsageData] = useState<UsageData | null>(null);[m
+   const [loading, setLoading] = useState(true);[m
+   const { api, user, subscription } = useAuthStore();[m
+[36m@@ -287,7 +289,7 @@[m [mconst UsageTracker: React.FC = () => {[m
+               You're approaching your plan limits[m
+             </p>[m
+             <button [m
+[31m-              onClick={() => window.location.href = '/pricing'}[m
+[32m+[m[32m              onClick={() => navigate('/pricing')}[m
+               className="text-sm text-blue-600 hover:text-blue-800 underline"[m
+             >[m
+               Upgrade your plan to get more resources[m

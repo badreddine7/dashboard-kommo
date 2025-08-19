@@ -49,7 +49,7 @@ const reportTypes: ReportConfig[] = [
     icon: BarChart3,
     type: 'performance',
     formats: ['pdf', 'csv', 'excel'],
-    timeRanges: ['Last 7 days', 'Last 30 days', 'Last 90 days', 'This month', 'This quarter', 'This year']
+    timeRanges: ['Last 7 days', 'Last 30 days', 'This month', 'This quarter', 'This year']
   },
   {
     id: 'activity-report',
@@ -58,7 +58,7 @@ const reportTypes: ReportConfig[] = [
     icon: Activity,
     type: 'activity',
     formats: ['pdf', 'csv'],
-    timeRanges: ['Last 7 days', 'Last 30 days', 'Last 90 days', 'This month']
+    timeRanges: ['Last 7 days', 'Last 30 days', 'This month']
   },
   {
     id: 'revenue-analysis',
@@ -67,7 +67,7 @@ const reportTypes: ReportConfig[] = [
     icon: DollarSign,
     type: 'financial',
     formats: ['pdf', 'excel'],
-    timeRanges: ['Last 30 days', 'Last 90 days', 'This month', 'This quarter', 'This year']
+    timeRanges: ['Last 30 days', 'This month', 'This quarter', 'This year']
   },
   {
     id: 'team-comparison',
@@ -85,7 +85,7 @@ const reportTypes: ReportConfig[] = [
     icon: Target,
     type: 'performance',
     formats: ['pdf', 'excel'],
-    timeRanges: ['Last 30 days', 'Last 90 days', 'This month', 'This quarter']
+    timeRanges: ['Last 30 days', 'This month', 'This quarter']
   },
   {
     id: 'time-analysis',

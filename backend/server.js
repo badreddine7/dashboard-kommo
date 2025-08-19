@@ -76,7 +76,7 @@ logger.info('Server starting with configuration', {
 });
 
 // Rate limiting - very conservative to avoid 429 errors
-const RATE_LIMIT_RPS = 4; // 4 requests per second
+const RATE_LIMIT_RPS = 7; // 7 requests per second
 let callsThisSecond = 0;
 setInterval(() => { callsThisSecond = 0; }, 1000);
 
@@ -223,8 +223,8 @@ async function aggregate(accountId, token, useCache = true) {
   const domain = accountId.includes('.') ? accountId : `${accountId}.kommo.com`;
   const refreshedToken = token.access_token;
   
-  // Define the time range for the heatmap (90 days)
-  const edges = 90 * 24 * 3600 * 1000;
+  // Define the time range for the heatmap (30 days - 1 month)
+  const edges = 30 * 24 * 3600 * 1000;
   const since = Date.now() - edges;
   const sinceTimestamp = Math.floor(since / 1000);
 
@@ -264,10 +264,19 @@ async function aggregate(accountId, token, useCache = true) {
     'filter[created_at][from]': oneMonthAgo
   });
   
-  logger.info('Fetching activity events (last 90 days)...');
-  const activityEvents = await paginate(accountId, refreshedToken, 'events', {
-    'filter[created_at][from]': sinceTimestamp
-  });
+  logger.info('Fetching activity events (last 1 month only)...');
+  let activityEvents = [];
+  try {
+    activityEvents = await paginate(accountId, refreshedToken, 'events', {
+      'filter[created_at][from]': sinceTimestamp
+    });
+  } catch (error) {
+    logger.warn('Failed to fetch activity events, continuing with empty data', { 
+      accountId, 
+      error: error.message 
+    });
+    activityEvents = []; // Continue with empty data
+  }
   
   logger.info('Fetching custom fields...');
   const customFields = await paginate_sol(accountId, refreshedToken, 'leads/','custom_fields');
