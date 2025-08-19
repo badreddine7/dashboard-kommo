@@ -232,29 +232,51 @@ async function aggregate(accountId, token, useCache = true) {
   logger.info('Fetching users...');
   const users = await paginate(accountId, refreshedToken, 'users');
   
-  logger.info('Fetching leads...');
-  const leads = await paginate(accountId, refreshedToken, 'leads',{ with: ['source'] });
+  logger.info('Fetching leads (last 6 months)...');
+  const sixMonthsAgo = Math.floor((Date.now() - 180 * 24 * 3600 * 1000) / 1000);
+  const leads = await paginate(accountId, refreshedToken, 'leads', { 
+    with: ['source'],
+    'filter[created_at][from]': sixMonthsAgo
+  });
   
-  logger.info('Fetching tasks...');
-  const tasks = await paginate(accountId, refreshedToken, 'tasks');
+  logger.info('Fetching tasks (last 1 month only)...');
+  const oneMonthAgo = Math.floor((Date.now() - 30 * 24 * 3600 * 1000) / 1000);
+  const tasks = await paginate(accountId, refreshedToken, 'tasks', {
+    'filter[created_at][from]': oneMonthAgo,
+    'filter[is_completed]': false // Only fetch incomplete tasks to reduce data
+  });
   
-  logger.info('Fetching lead status events...');
-  const events = await paginate(accountId, refreshedToken, 'events', { 'filter[type]': 'lead_status_changed' });
+  logger.info('Fetching lead status events (last 6 months)...');
+  const events = await paginate(accountId, refreshedToken, 'events', { 
+    'filter[type]': 'lead_status_changed',
+    'filter[created_at][from]': sixMonthsAgo
+  });
   
-  logger.info('Fetching note events...');
-  const noteEvents = await paginate(accountId, refreshedToken, 'events', {'filter[type]': 'common_note_added'});
+  logger.info('Fetching note events (last 1 month)...');
+  const noteEvents = await paginate(accountId, refreshedToken, 'events', {
+    'filter[type]': 'common_note_added',
+    'filter[created_at][from]': oneMonthAgo
+  });
   
-  logger.info('Fetching message events...');
-  const messageEvents = await paginate(accountId, refreshedToken, 'events', {'filter[type]': ['outgoing_mail', 'outgoing_chat_message', 'outgoing_sms']});
+  logger.info('Fetching message events (last 1 month)...');
+  const messageEvents = await paginate(accountId, refreshedToken, 'events', {
+    'filter[type]': ['outgoing_mail', 'outgoing_chat_message', 'outgoing_sms'],
+    'filter[created_at][from]': oneMonthAgo
+  });
   
-  logger.info('Fetching activity events...');
-  const activityEvents = await paginate(accountId, refreshedToken, 'events', {'filter[created_at][from]': sinceTimestamp});
+  logger.info('Fetching activity events (last 90 days)...');
+  const activityEvents = await paginate(accountId, refreshedToken, 'events', {
+    'filter[created_at][from]': sinceTimestamp
+  });
   
   logger.info('Fetching custom fields...');
   const customFields = await paginate_sol(accountId, refreshedToken, 'leads/','custom_fields');
   
-  logger.info('Fetching call events...');
-  const callEvents = await paginate(accountId, refreshedToken, 'events', {'filter[type]': ['incoming_call', 'outgoing_call']});
+  logger.info('Fetching call events (last 1 month)...');
+  const callEvents = await paginate(accountId, refreshedToken, 'events', {
+    'filter[type]': ['incoming_call', 'outgoing_call'],
+    'filter[created_at][from]': oneMonthAgo
+  });
 
   logger.info('Data fetched successfully', { 
     accountId,
