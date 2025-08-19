@@ -75,8 +75,8 @@ logger.info('Server starting with configuration', {
   callbackUrl: CALLBACK_URL
 });
 
-// Rate limiting
-const RATE_LIMIT_RPS = 7;
+// Rate limiting - more conservative to avoid 429 errors
+const RATE_LIMIT_RPS = 7; // Reduced from 7 to 3 requests per second
 let callsThisSecond = 0;
 setInterval(() => { callsThisSecond = 0; }, 1000);
 
@@ -110,6 +110,30 @@ async function kommoGet(accountId, token, endpoint, params = {}) {
       status: error.response?.status,
       message: error.message 
     });
+    
+    // Handle 429 rate limit errors with retry
+    if (error.response?.status === 429) {
+      logger.warn('Rate limit hit, waiting before retry', { accountId, endpoint });
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+      // Retry once
+      try {
+        const retryRes = await axios.get(url, {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { limit: 250, ...params }
+        });
+        logger.debug('Kommo API retry successful', { endpoint, status: retryRes.status });
+        return retryRes.data;
+      } catch (retryError) {
+        logger.error('Kommo API retry failed', { 
+          accountId, 
+          endpoint, 
+          status: retryError.response?.status,
+          message: retryError.message 
+        });
+        throw retryError;
+      }
+    }
+    
     throw error;
   }
 }
