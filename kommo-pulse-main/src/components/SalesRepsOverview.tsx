@@ -365,8 +365,8 @@ const SalesRepsOverview: React.FC<SalesRepsOverviewProps> = ({
               reps={reps}
               getMetricValue={(rep) => rep.events_count}
               formatValue={(value) => value.toLocaleString()}
-                      getSubtitle={(rep) => "activities (30 days)"}
-        tooltip="Ranked by total CRM activities over the last 30 days"
+                      getSubtitle={(rep) => "activities (7 days)"}
+        tooltip="Ranked by total CRM activities over the last 7 days"
               onSelectRep={onSelectRep}
             />
 

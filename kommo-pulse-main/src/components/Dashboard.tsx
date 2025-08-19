@@ -682,7 +682,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               value={currentUser.events_count.toLocaleString()}
               icon={BarChart3}
               variant="accent"
-              tooltip="The total number of activities performed by this user in the CRM over the last 30 days. Activities include calls, emails, notes, status updates, and other interactions."
+              tooltip="The total number of activities performed by this user in the CRM over the last 7 days. Activities include calls, emails, notes, status updates, and other interactions."
             />
             <MetricCard
               title="Communication"
@@ -783,7 +783,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
         {/* Activity Heatmap - Conditional Rendering */}
         {settings.showHeatmap && (
           <section>
-            <ChartCard title="Activity Heatmap" subtitle="Daily activity over the last 30 days">
+            <ChartCard title="Activity Heatmap" subtitle="Daily activity over the last 7 days">
               <ActivityHeatmap data={currentUser.heatmap} />
             </ChartCard>
           </section>

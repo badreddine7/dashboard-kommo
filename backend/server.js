@@ -152,7 +152,7 @@ async function paginate(accountId, token, entity, params = {}) {
     if (!data._links.next) break;
     page++;
   }
-  
+
   logger.debug('Pagination completed', { entity, totalItems: all.length, pages: page - 1 });
   return all;
 }
@@ -264,12 +264,16 @@ async function aggregate(accountId, token, useCache = true) {
     'filter[created_at][from]': oneMonthAgo
   });
   
-  logger.info('Fetching activity events (last 1 month only)...');
+  logger.info('Fetching activity events (last 7 days only for performance)...');
   let activityEvents = [];
   try {
+    // Only fetch last 7 days of activity events to dramatically reduce data volume
+    const sevenDaysAgo = Math.floor((Date.now() - 7 * 24 * 3600 * 1000) / 1000);
     activityEvents = await paginate(accountId, refreshedToken, 'events', {
-      'filter[created_at][from]': sinceTimestamp
+      'filter[created_at][from]': sevenDaysAgo,
+      'limit': 100 // Limit to 100 events per page to reduce payload size
     });
+    
   } catch (error) {
     logger.warn('Failed to fetch activity events, continuing with empty data', { 
       accountId, 
