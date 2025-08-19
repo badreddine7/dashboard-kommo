@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { api, useAuthStore } from '@/stores/authStore';
 import { kommoCache } from '@/utils/cache';
 
+// Request deduplication - prevent multiple simultaneous requests
+const pendingRequests = new Map<string, Promise<any>>();
+
 interface RepData {
   user_id: string;
   name: string;
@@ -110,14 +113,30 @@ export const useAnalytics = (account: string) => {
         }
       }
       
+      // Check if there's already a pending request for this account
+      const requestKey = `analytics-${account}`;
+      if (pendingRequests.has(requestKey)) {
+        console.log('🔄 Reusing existing request for account:', account);
+        const existingRequest = pendingRequests.get(requestKey);
+        const response = await existingRequest;
+        setData(response.data);
+        setLoading(false);
+        return;
+      }
+      
       console.log('📡 Making API request to:', `/report?account=${account}`);
       console.log('🔍 API base URL:', api.defaults.baseURL);
       console.log('🔍 Auth headers:', api.defaults.headers.common);
       
-      // Use authenticated API instance with timeout
-      const response = await api.get(`/report?account=${account}`, {
+      // Create the request promise and store it
+      const requestPromise = api.get(`/report?account=${account}`, {
         timeout: 900000 // 15 minute timeout for very large accounts
       });
+      
+      pendingRequests.set(requestKey, requestPromise);
+      
+      // Use authenticated API instance with timeout
+      const response = await requestPromise;
       console.log('✅ Analytics response:', response.data);
       
       // Store in cache
@@ -148,6 +167,9 @@ export const useAnalytics = (account: string) => {
         setError(errorMessage);
       }
     } finally {
+      // Clean up the pending request
+      const requestKey = `analytics-${account}`;
+      pendingRequests.delete(requestKey);
       setLoading(false);
     }
   };

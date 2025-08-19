@@ -76,7 +76,7 @@ logger.info('Server starting with configuration', {
 });
 
 // Rate limiting - very conservative to avoid 429 errors
-const RATE_LIMIT_RPS = 2; // Very conservative: 2 requests per second
+const RATE_LIMIT_RPS = 4; // 4 requests per second
 let callsThisSecond = 0;
 setInterval(() => { callsThisSecond = 0; }, 1000);
 
