@@ -75,8 +75,8 @@ logger.info('Server starting with configuration', {
   callbackUrl: CALLBACK_URL
 });
 
-// Rate limiting - more conservative to avoid 429 errors
-const RATE_LIMIT_RPS = 7; // Reduced from 7 to 3 requests per second
+// Rate limiting - very conservative to avoid 429 errors
+const RATE_LIMIT_RPS = 2; // Very conservative: 2 requests per second
 let callsThisSecond = 0;
 setInterval(() => { callsThisSecond = 0; }, 1000);
 
@@ -228,17 +228,33 @@ async function aggregate(accountId, token, useCache = true) {
   const since = Date.now() - edges;
   const sinceTimestamp = Math.floor(since / 1000);
 
-  const [users, leads, tasks, events, noteEvents, messageEvents, activityEvents, customFields, callEvents] = await Promise.all([
-    paginate(accountId, refreshedToken, 'users'),
-    paginate(accountId, refreshedToken, 'leads',{ with: ['source'] }),
-    paginate(accountId, refreshedToken, 'tasks'),
-    paginate(accountId, refreshedToken, 'events', { 'filter[type]': 'lead_status_changed' }),
-    paginate(accountId, refreshedToken, 'events', {'filter[type]': 'common_note_added'}),
-    paginate(accountId, refreshedToken, 'events', {'filter[type]': ['outgoing_mail', 'outgoing_chat_message', 'outgoing_sms']}),
-    paginate(accountId, refreshedToken, 'events', {'filter[created_at][from]': sinceTimestamp}),
-    paginate_sol(accountId, refreshedToken, 'leads/','custom_fields'),
-    paginate(accountId, refreshedToken, 'events', {'filter[type]': ['incoming_call', 'outgoing_call']})
-  ]);
+  // Fetch data sequentially to avoid overwhelming the API
+  logger.info('Fetching users...');
+  const users = await paginate(accountId, refreshedToken, 'users');
+  
+  logger.info('Fetching leads...');
+  const leads = await paginate(accountId, refreshedToken, 'leads',{ with: ['source'] });
+  
+  logger.info('Fetching tasks...');
+  const tasks = await paginate(accountId, refreshedToken, 'tasks');
+  
+  logger.info('Fetching lead status events...');
+  const events = await paginate(accountId, refreshedToken, 'events', { 'filter[type]': 'lead_status_changed' });
+  
+  logger.info('Fetching note events...');
+  const noteEvents = await paginate(accountId, refreshedToken, 'events', {'filter[type]': 'common_note_added'});
+  
+  logger.info('Fetching message events...');
+  const messageEvents = await paginate(accountId, refreshedToken, 'events', {'filter[type]': ['outgoing_mail', 'outgoing_chat_message', 'outgoing_sms']});
+  
+  logger.info('Fetching activity events...');
+  const activityEvents = await paginate(accountId, refreshedToken, 'events', {'filter[created_at][from]': sinceTimestamp});
+  
+  logger.info('Fetching custom fields...');
+  const customFields = await paginate_sol(accountId, refreshedToken, 'leads/','custom_fields');
+  
+  logger.info('Fetching call events...');
+  const callEvents = await paginate(accountId, refreshedToken, 'events', {'filter[type]': ['incoming_call', 'outgoing_call']});
 
   logger.info('Data fetched successfully', { 
     accountId,
