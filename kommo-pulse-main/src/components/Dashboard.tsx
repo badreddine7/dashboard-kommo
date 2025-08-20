@@ -675,7 +675,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               value={currentUser.avg_deal_size ? `$${currentUser.avg_deal_size.toLocaleString()}` : 'N/A'}
               icon={DollarSign}
               variant="success"
-              tooltip="The average monetary value of successfully closed deals in the last 1 month. Calculated from custom fields with 'Budget' or 'Value' in the name for won leads. To improve this metric in Kommo: create custom fields for deal value/budget, ensure they're filled for all leads, focus on high-value prospects, and track deal values consistently."
+              tooltip="The average monetary value of successfully closed deals in the last 1 month. Calculated from the lead price field for won leads. To improve this metric in Kommo: set accurate prices for all leads, focus on high-value prospects, and ensure lead prices are updated when deals close."
             />
             <MetricCard
               title="Activities"
