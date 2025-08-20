@@ -76,7 +76,7 @@ logger.info('Server starting with configuration', {
 });
 
 // Rate limiting - very conservative to avoid 429 errors
-const RATE_LIMIT_RPS = 100; // 7 requests per second
+const RATE_LIMIT_RPS = 7; // 7 requests per second
 let callsThisSecond = 0;
 setInterval(() => { callsThisSecond = 0; }, 1000);
 
@@ -87,6 +87,8 @@ setInterval(() => { callsThisSecond = 0; }, 1000);
 
 // Request wrapper with per-user tokens
 async function kommoGet(accountId, token, endpoint, params = {}) {
+  const startTime = Date.now();
+  
   while (callsThisSecond >= RATE_LIMIT_RPS) {
     await new Promise(r => setTimeout(r, 150));
   }
@@ -101,7 +103,13 @@ async function kommoGet(accountId, token, endpoint, params = {}) {
       headers: { Authorization: `Bearer ${token}` },
       params: { limit: 250, ...params }
     });
-    logger.debug('Kommo API request successful', { endpoint, status: res.status });
+    const duration = Date.now() - startTime;
+    logger.debug('Kommo API request successful', { 
+      endpoint, 
+      status: res.status, 
+      duration: `${duration}ms`,
+      dataCount: res.data._embedded?.[endpoint.split('/').pop()]?.length || 0
+    });
     return res.data;
   } catch (error) {
     logger.error('Kommo API request failed', { 
@@ -142,18 +150,37 @@ async function kommoGet(accountId, token, endpoint, params = {}) {
 async function paginate(accountId, token, entity, params = {}) {
   let page = 1;
   let all = [];
+  const startTime = Date.now();
   
   logger.debug('Starting pagination', { accountId, entity, params });
   
   while (true) {
+    const pageStartTime = Date.now();
     const data = await kommoGet(accountId, token, `/${entity}`, { page, ...params });
+    const pageDuration = Date.now() - pageStartTime;
+    
     if (!data._embedded || data._embedded[entity].length === 0) break;
     all.push(...data._embedded[entity]);
+    
+    logger.debug(`Page ${page} completed`, { 
+      entity, 
+      itemsInPage: data._embedded[entity].length, 
+      totalSoFar: all.length,
+      pageDuration: `${pageDuration}ms`
+    });
+    
     if (!data._links.next) break;
     page++;
   }
 
-  logger.debug('Pagination completed', { entity, totalItems: all.length, pages: page - 1 });
+  const totalDuration = Date.now() - startTime;
+  logger.debug('Pagination completed', { 
+    entity, 
+    totalItems: all.length, 
+    pages: page - 1,
+    totalDuration: `${totalDuration}ms`,
+    avgTimePerPage: `${Math.round(totalDuration / (page - 1))}ms`
+  });
   return all;
 }
 
