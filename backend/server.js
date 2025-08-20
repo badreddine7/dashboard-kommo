@@ -304,8 +304,16 @@ async function aggregate(accountId, token, useCache = true) {
   try {
     // Only fetch last 7 days of activity events to dramatically reduce data volume
     const sevenDaysAgo = Math.floor((Date.now() - 7 * 24 * 3600 * 1000) / 1000);
+    
+    // Use the same validUserIds we already have for API-level filtering
+    logger.info('Filtering activity events for valid users at API level', { 
+      validUserCount: validUserIds.length,
+      validUserIds: validUserIds.slice(0, 5) // Log first 5 for debugging
+    });
+    
     activityEvents = await paginate(accountId, refreshedToken, 'events', {
       'filter[created_at][from]': sevenDaysAgo,
+      'filter[created_by]': validUserIds, // Only fetch activity events from our reps at API level
       'limit': 100 // Limit to 100 events per page to reduce payload size
     });
     
@@ -445,6 +453,11 @@ async function aggregate(accountId, token, useCache = true) {
     if (!heatmap[uid]) heatmap[uid] = {};
     const day = new Date(ts).toISOString().split('T')[0]; // YYYY-MM-DD
     heatmap[uid][day] = (heatmap[uid][day] || 0) + 1;
+  });
+
+  logger.info('Activity events processing summary (API-level filtered)', { 
+    totalActivityEvents: activityEvents.length,
+    activityUserIds: [...new Set(activityEvents.map(e => e.created_by))].slice(0, 10) // First 10 unique user IDs
   });
 
   // Map pipeline@status → [fieldId, …]
