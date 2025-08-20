@@ -526,36 +526,81 @@ async function aggregate(accountId, token, useCache = true) {
     }
 
 
-    // ── INSERT SALES‑FUNNEL METRICS BELOW ──
+    // ── SALES FUNNEL METRICS FROM PIPELINE STAGES ──
 
-    // Ensure your 'leads' array includes embedded tags via API param:
-    //    kommoGet(accountId, token, '/leads', { page, with: ['tags','source'] })
-    const sqlTagName = 'SQL'; // replace if your trigger is via custom field, tag, etc.
-    const unreachableTag = 'Unreachable';
-    const notSqlTag = 'Not SQL';
-
-    const leadTagSets = r.leads.map(l =>
-      ((l._embedded || {}).tags || []).map(t => t.name)
+    // Calculate the same metrics but using pipeline stages instead of tags
+    // SQL = leads in qualification/proposal stages (not new, not won/lost)
+    // Unreachable = leads in early stages that haven't progressed
+    // Not SQL = leads that are clearly not qualified (won/lost without qualification)
+    
+    // Get stage names for each lead
+    const leadStages = r.leads.map(l => {
+      const stageName = getStageNameFromCache(stageCache, l.pipeline_id, l.status_id);
+      return { lead: l, stageName: stageName };
+    });
+    
+    // Define pipeline-based categorization using actual Kommo pipeline stages
+    // Based on provided pipeline data with IDs and names
+    const sqlStages = [
+      'Qualified Lead', 'Contacted', 'Initial Contact', 'Proposal Sent', 'Quote Sent', 'Negotiation', 'In Discussion',
+      'Qualified', 'Contacted', 'Proposal', 'Quote', 'Negotiation', 'Discussion', 'Qualification', 'Meeting Scheduled',
+      'Follow Up', 'Proposal Review', 'Contract Sent', 'Contract Review'
+    ];
+    const unreachableStages = [
+      'Unreachable', 'No Answer', 'Wrong Number', 'No Response', 'Not Interested', 'Busy', 'Call Back Later',
+      'Unreachable Lead', 'No Contact', 'Wrong Contact', 'Not Available'
+    ];
+    const notSqlStages = [
+      'Won', 'Lost', 'Closed', 'Cancelled', 'Completed', 'Failed', 'Rejected', 'Expired',
+      'Deal Won', 'Deal Lost', 'Lead Closed', 'Lead Cancelled'
+    ];
+    
+    // Categorize leads based on pipeline stages
+    const sqlLeads = leadStages.filter(({ stageName }) => 
+      sqlStages.some(stage => stageName.toLowerCase().includes(stage.toLowerCase()))
     );
-
-    const unreachableCount = leadTagSets.filter(tags => tags.includes(unreachableTag)).length;
-    const notSQLCount     = leadTagSets.filter(tags => tags.includes(notSqlTag)).length;
-    const sqlIndices      = leadTagSets.map((tags, i) => tags.includes(sqlTagName) ? i : -1).filter(i => i >= 0);
-
-    const sqlCount = sqlIndices.length;
+    const unreachableLeads = leadStages.filter(({ stageName }) => 
+      unreachableStages.some(stage => stageName.toLowerCase().includes(stage.toLowerCase()))
+    );
+    const notSqlLeads = leadStages.filter(({ stageName }) => 
+      notSqlStages.some(stage => stageName.toLowerCase().includes(stage.toLowerCase()))
+    );
+    
+    // Debug: Log stage categorization for this rep
+    const uniqueStages = [...new Set(leadStages.map(({ stageName }) => stageName))];
+    logger.debug('Sales funnel stage categorization for rep', {
+      repId: uid,
+      repName: r.name,
+      totalLeads: totalLeads,
+      uniqueStages: uniqueStages,
+      sqlLeadsCount: sqlLeads.length,
+      unreachableLeadsCount: unreachableLeads.length,
+      notSqlLeadsCount: notSqlLeads.length,
+      uncategorizedLeadsCount: totalLeads - sqlLeads.length - unreachableLeads.length - notSqlLeads.length
+    });
+    
+    // Calculate the same metrics as before
+    const sqlCount = sqlLeads.length;
+    const unreachableCount = unreachableLeads.length;
+    const notSQLCount = notSqlLeads.length;
     const baseCount = Math.max(0, totalLeads - unreachableCount - notSQLCount);
-    const sqlRate  = baseCount > 0 ? sqlCount / baseCount : 0;
+    const sqlRate = baseCount > 0 ? sqlCount / baseCount : 0;
 
-    // Use tasks data to estimate appointments:
+    // Use tasks data to estimate appointments (same logic as before)
     // Scheduled = all 'meeting' tasks created for SQL leads
     // Attended = those completed, missed = scheduled - completed
-    const sqlLeadIds = sqlIndices.map(i => r.leads[i].id);
-    const meetings = tasks.filter(t => t.task_type_id === 2 && t.entity_type  === 'leads' && sqlLeadIds.includes(Number(t.entity_id)) && t.created_by === uid);
+    const sqlLeadIds = sqlLeads.map(({ lead }) => lead.id);
+    const meetings = tasks.filter(t => 
+      t.task_type_id === 2 && 
+      t.entity_type === 'leads' && 
+      sqlLeadIds.includes(Number(t.entity_id)) && 
+      t.created_by === uid
+    );
     const appointmentsScheduled = meetings.length;
     const attendedDone = meetings.filter(t => t.is_completed).length;
 
     const appointmentRate = sqlCount > 0 ? appointmentsScheduled / sqlCount : 0;
-    const attendanceRate  = appointmentsScheduled > 0 ? attendedDone / appointmentsScheduled : 0;
+    const attendanceRate = appointmentsScheduled > 0 ? attendedDone / appointmentsScheduled : 0;
     const saleRate = attendedDone > 0 ? wonLeads / attendedDone : 0;
     const overallFunnelRate = totalLeads > 0 ? wonLeads / totalLeads : 0;
 
