@@ -320,7 +320,7 @@ const GeneralDashboard: React.FC<GeneralDashboardProps> = ({ account }) => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${overallStats.totalRevenue.toLocaleString()}</div>
+              <div className="text-2xl font-bold">{overallStats.totalRevenue.toLocaleString()} MAD</div>
               <p className="text-xs text-muted-foreground mt-1">
                 +{overallStats.teamGrowth}% from last month
               </p>
@@ -410,7 +410,7 @@ const GeneralDashboard: React.FC<GeneralDashboardProps> = ({ account }) => {
                 </div>
                 <div className="text-center p-3 bg-orange-50 rounded-lg border border-orange-200">
                   <div className="text-lg font-bold text-orange-600">
-                    ${(overallStats.totalRevenue / salesReps.length).toLocaleString()}
+                    {(overallStats.totalRevenue / salesReps.length).toLocaleString()} MAD
                   </div>
                   <p className="text-xs text-muted-foreground">Avg per Rep</p>
                 </div>
@@ -528,7 +528,7 @@ const GeneralDashboard: React.FC<GeneralDashboardProps> = ({ account }) => {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="text-center p-2 bg-green-50 rounded-lg border border-green-200">
                     <div className="text-lg font-bold text-green-600">
-                      ${rep.performance.total_revenue.toLocaleString()}
+                      {rep.performance.total_revenue.toLocaleString()} MAD
                     </div>
                     <p className="text-xs text-muted-foreground">Revenue</p>
                   </div>
@@ -550,7 +550,7 @@ const GeneralDashboard: React.FC<GeneralDashboardProps> = ({ account }) => {
                   
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Avg Deal Size</span>
-                    <span className="font-medium">${rep.performance.avg_deal_size.toLocaleString()}</span>
+                    <span className="font-medium">{rep.performance.avg_deal_size.toLocaleString()} MAD</span>
                   </div>
                 </div>
 

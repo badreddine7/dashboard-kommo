@@ -352,7 +352,7 @@ const SalesRepsOverview: React.FC<SalesRepsOverviewProps> = ({
               icon={DollarSign}
               reps={reps.filter(rep => rep.avg_deal_size && rep.avg_deal_size > 0)}
               getMetricValue={(rep) => rep.avg_deal_size || 0}
-              formatValue={(value) => `$${value.toLocaleString()}`}
+              formatValue={(value) => `${value.toLocaleString()} MAD`}
               getSubtitle={(rep) => `${rep.won_leads} deals closed`}
               tooltip="Ranked by average monetary value of closed deals"
               onSelectRep={onSelectRep}
@@ -402,7 +402,7 @@ const SalesRepsOverview: React.FC<SalesRepsOverviewProps> = ({
               getMetricValue={(rep) => rep.sales_funnel.sql_rate}
               formatValue={(value) => `${(value * 100).toFixed(1)}%`}
               getSubtitle={(rep) => `${rep.sales_funnel.sql_leads} SQL leads`}
-              tooltip="Ranked by Sales Qualified Lead rate - percentage of leads qualified as sales-ready"
+              tooltip="Ranked by Sales Qualified Lead rate - percentage of leads qualified as sales-ready. SQL leads include interested prospects, appointments, negotiations, and successful conversions. Unreachable leads include contacts that can't be reached, missed appointments, and lost deals."
               onSelectRep={onSelectRep}
             />
 

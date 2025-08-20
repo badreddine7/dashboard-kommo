@@ -672,7 +672,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
           }`}>
             <MetricCard
               title="Average Deal Size"
-              value={currentUser.avg_deal_size ? `$${currentUser.avg_deal_size.toLocaleString()}` : 'N/A'}
+              value={currentUser.avg_deal_size ? `${currentUser.avg_deal_size.toLocaleString()} MAD` : 'N/A'}
               icon={DollarSign}
               variant="success"
               tooltip="The average monetary value of successfully closed deals in the last 1 month. Calculated from the lead price field for won leads. To improve this metric in Kommo: set accurate prices for all leads, focus on high-value prospects, and ensure lead prices are updated when deals close."
@@ -807,7 +807,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               icon={Target}
               variant="success"
               subtitle={`${currentUser.sales_funnel.sql_leads} SQL leads`}
-              tooltip="Sales Qualified Lead rate - the percentage of leads that have been qualified as having genuine sales potential in the last 1 month. Calculated as: (SQL Leads ÷ (Total Leads - Unreachable - Not SQL)) × 100. To improve this metric in Kommo: use the 'SQL' tag for qualified leads, mark leads as 'Unreachable' or 'Not SQL' when appropriate, implement proper lead scoring, and train team on qualification criteria."
+              tooltip="Sales Qualified Lead rate - the percentage of leads that have been qualified as having genuine sales potential in the last 1 month. Calculated as: (SQL Leads ÷ (Total Leads - Unreachable Leads)) × 100. SQL leads include: Interested prospects, appointments, negotiations, and successful conversions. Unreachable leads include: contacts that can't be reached, missed appointments, and lost deals. To improve this metric in Kommo: properly categorize leads by pipeline stages, ensure accurate stage progression, and maintain clean pipeline data."
             />
             <MetricCard
               title="Appointment Rate"
