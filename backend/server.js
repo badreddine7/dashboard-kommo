@@ -284,9 +284,18 @@ async function aggregate(accountId, token, useCache = true) {
   });
   
   logger.info('Fetching message events (last 1 month)...');
+  
+  // Get valid user IDs for filtering at API level
+  const validUserIds = users.map(u => u.id);
+  logger.info('Filtering messages for valid users at API level', { 
+    validUserCount: validUserIds.length,
+    validUserIds: validUserIds.slice(0, 5) // Log first 5 for debugging
+  });
+  
   const messageEvents = await paginate(accountId, refreshedToken, 'events', {
     'filter[type]': ['outgoing_mail', 'outgoing_chat_message', 'outgoing_sms'],
     'filter[created_at][from]': oneMonthAgo,
+    'filter[created_by]': validUserIds, // Only fetch messages from our reps at API level
     'limit': 500 // Limit to 500 messages per page for performance
   });
   
