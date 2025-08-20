@@ -201,7 +201,7 @@ const PerformanceInsightsCard: React.FC<PerformanceInsightsCardProps> = ({ repDa
         </TooltipTrigger>
         <TooltipContent className="max-w-xs p-3">
           <p className="text-sm">
-            Performance insights based on data from the last 6 months. The overall grade combines win rate, 
+            Performance insights based on data from the last 1 month. The overall grade combines win rate, 
             task completion, SQL rate, appointment rate, attendance rate, and sale rate. 
             To improve performance: focus on lead qualification, complete tasks on time, schedule and attend meetings, 
             and maintain high conversion rates throughout the sales funnel.

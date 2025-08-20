@@ -232,24 +232,23 @@ async function aggregate(accountId, token, useCache = true) {
   logger.info('Fetching users...');
   const users = await paginate(accountId, refreshedToken, 'users');
   
-  logger.info('Fetching leads (last 6 months)...');
-  const sixMonthsAgo = Math.floor((Date.now() - 180 * 24 * 3600 * 1000) / 1000);
+  logger.info('Fetching leads (last 1 month)...');
+  const oneMonthAgo = Math.floor((Date.now() - 30 * 24 * 3600 * 1000) / 1000);
   const leads = await paginate(accountId, refreshedToken, 'leads', { 
     with: ['source'],
-    'filter[created_at][from]': sixMonthsAgo
+    'filter[created_at][from]': oneMonthAgo
   });
   
   logger.info('Fetching tasks (last 1 month only)...');
-  const oneMonthAgo = Math.floor((Date.now() - 30 * 24 * 3600 * 1000) / 1000);
   const tasks = await paginate(accountId, refreshedToken, 'tasks', {
     'filter[created_at][from]': oneMonthAgo,
     'filter[is_completed]': false // Only fetch incomplete tasks to reduce data
   });
   
-  logger.info('Fetching lead status events (last 6 months)...');
+  logger.info('Fetching lead status events (last 1 month)...');
   const events = await paginate(accountId, refreshedToken, 'events', { 
     'filter[type]': 'lead_status_changed',
-    'filter[created_at][from]': sixMonthsAgo
+    'filter[created_at][from]': oneMonthAgo
   });
   
   logger.info('Fetching note events (last 1 month)...');
