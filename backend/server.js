@@ -432,17 +432,11 @@ async function aggregate(accountId, token, useCache = true) {
     const followUpRatio = totalLeads > 0 ? r.tasks.completed / totalLeads : 0;
     const completion_rate = r.tasks.created > 0 ? r.tasks.completed / r.tasks.created : 0;
 
-    // Average deal size: use custom_fields_values array
-    const valueFieldName = "Budget"; // replace with your custom field ID , for now its hardcoded
-    const budgetIDs= customFields
-      .filter(cf => cf.name.toLowerCase().includes(valueFieldName.toLowerCase()) || cf.name.toLowerCase().includes("value"))
-      .map(cf => cf.id);
+    // Average deal size: use lead.price directly
     const totalValue = r.leads
       .filter(l => l.status_id === 142)
       .reduce((sum, l) => {
-        const field = l.custom_fields_values?.find(f => budgetIDs.includes(f.field_id));
-        const val = field?.values?.[0]?.value;
-        return sum + (parseFloat(val) || 0);
+        return sum + (parseFloat(l.price) || 0);
       }, 0);
     const avgDealSize = wonLeads > 0 ? totalValue / wonLeads : null;
 
