@@ -544,30 +544,59 @@ async function aggregate(accountId, token, useCache = true) {
     const sqlStages = [
       'Qualified Lead', 'Contacted', 'Initial Contact', 'Proposal Sent', 'Quote Sent', 'Negotiation', 'In Discussion',
       'Qualified', 'Contacted', 'Proposal', 'Quote', 'Negotiation', 'Discussion', 'Qualification', 'Meeting Scheduled',
-      'Follow Up', 'Proposal Review', 'Contract Sent', 'Contract Review'
+      'Follow Up', 'Proposal Review', 'Contract Sent', 'Contract Review',
+      'Interested', 'Appointment Scheduled', 'Appointment 24 Hours', 'Agreed for IL', 'Offer made', 'Negociation',
+      'taking decision SC', 'General Info SC', 'Interested in August', 'Interested  No Appointment'
     ];
     const unreachableStages = [
       'Unreachable', 'No Answer', 'Wrong Number', 'No Response', 'Not Interested', 'Busy', 'Call Back Later',
-      'Unreachable Lead', 'No Contact', 'Wrong Contact', 'Not Available'
+      'Unreachable Lead', 'No Contact', 'Wrong Contact', 'Not Available', 'UNREACHEABLE', 'Unreacheable',
+      'Missed Appointment', 'General Information Request (No Interest)'
     ];
     const notSqlStages = [
       'Won', 'Lost', 'Closed', 'Cancelled', 'Completed', 'Failed', 'Rejected', 'Expired',
-      'Deal Won', 'Deal Lost', 'Lead Closed', 'Lead Cancelled'
+      'Deal Won', 'Deal Lost', 'Lead Closed', 'Lead Cancelled', 'Closed - won', 'Closed - lost',
+      'Paid Full 2026', 'New student', 'Awaiting Payment'
     ];
     
-    // Categorize leads based on pipeline stages
-    const sqlLeads = leadStages.filter(({ stageName }) => 
-      sqlStages.some(stage => stageName.toLowerCase().includes(stage.toLowerCase()))
-    );
-    const unreachableLeads = leadStages.filter(({ stageName }) => 
-      unreachableStages.some(stage => stageName.toLowerCase().includes(stage.toLowerCase()))
-    );
-    const notSqlLeads = leadStages.filter(({ stageName }) => 
-      notSqlStages.some(stage => stageName.toLowerCase().includes(stage.toLowerCase()))
-    );
+    // Categorize leads based on pipeline stages with improved matching
+    const sqlLeads = leadStages.filter(({ stageName }) => {
+      const stageLower = stageName.toLowerCase();
+      return sqlStages.some(stage => {
+        const patternLower = stage.toLowerCase();
+        // Check for exact match or contains match
+        return stageLower === patternLower || stageLower.includes(patternLower) || patternLower.includes(stageLower);
+      });
+    });
+    
+    const unreachableLeads = leadStages.filter(({ stageName }) => {
+      const stageLower = stageName.toLowerCase();
+      return unreachableStages.some(stage => {
+        const patternLower = stage.toLowerCase();
+        // Check for exact match or contains match
+        return stageLower === patternLower || stageLower.includes(patternLower) || patternLower.includes(stageLower);
+      });
+    });
+    
+    const notSqlLeads = leadStages.filter(({ stageName }) => {
+      const stageLower = stageName.toLowerCase();
+      return notSqlStages.some(stage => {
+        const patternLower = stage.toLowerCase();
+        // Check for exact match or contains match
+        return stageLower === patternLower || stageLower.includes(patternLower) || patternLower.includes(stageLower);
+      });
+    });
     
     // Debug: Log stage categorization for this rep
     const uniqueStages = [...new Set(leadStages.map(({ stageName }) => stageName))];
+    const uncategorizedLeads = leadStages.filter(({ stageName }) => {
+      const stageLower = stageName.toLowerCase();
+      const isSql = sqlStages.some(s => stageLower.includes(s.toLowerCase()) || s.toLowerCase().includes(stageLower));
+      const isUnreachable = unreachableStages.some(s => stageLower.includes(s.toLowerCase()) || s.toLowerCase().includes(stageLower));
+      const isNotSql = notSqlStages.some(s => stageLower.includes(s.toLowerCase()) || s.toLowerCase().includes(stageLower));
+      return !isSql && !isUnreachable && !isNotSql;
+    });
+    
     logger.debug('Sales funnel stage categorization for rep', {
       repId: uid,
       repName: r.name,
@@ -576,7 +605,8 @@ async function aggregate(accountId, token, useCache = true) {
       sqlLeadsCount: sqlLeads.length,
       unreachableLeadsCount: unreachableLeads.length,
       notSqlLeadsCount: notSqlLeads.length,
-      uncategorizedLeadsCount: totalLeads - sqlLeads.length - unreachableLeads.length - notSqlLeads.length
+      uncategorizedLeadsCount: uncategorizedLeads.length,
+      uncategorizedStages: [...new Set(uncategorizedLeads.map(({ stageName }) => stageName))]
     });
     
     // Calculate the same metrics as before
