@@ -1,6 +1,6 @@
 // Cache utility for Kommo aggregate data
 const CACHE_PREFIX = 'kommo_aggregate_';
-const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds (increased from 5 minutes)
+const CACHE_DURATION = 30 * 60 * 1000; // 1 hour in milliseconds (increased from 5 minutes)
 
 export class KommoCache {
   constructor() {

@@ -604,12 +604,36 @@ async function aggregate(accountId, token, useCache = true) {
     // Scheduled = all 'meeting' tasks created for SQL leads
     // Attended = those completed, missed = scheduled - completed
     const sqlLeadIds = sqlLeads.map(({ lead }) => lead.id);
+    
+    logger.debug('Appointment calculation for rep', {
+      repId: uid,
+      repName: r.name,
+      sqlLeadsCount: sqlLeads.length,
+      sqlLeadIds: sqlLeadIds.slice(0, 10), // Log first 10 for debugging
+      totalTasksCount: tasks.length,
+      tasksForThisRep: tasks.filter(t => t.created_by === uid).length
+    });
+    
     const meetings = tasks.filter(t => 
       t.task_type_id === 2 && 
       t.entity_type === 'leads' && 
       sqlLeadIds.includes(Number(t.entity_id)) && 
       t.created_by === uid
     );
+    
+    logger.debug('Meetings found for rep', {
+      repId: uid,
+      repName: r.name,
+      totalMeetings: meetings.length,
+      meetingDetails: meetings.map(m => ({
+        taskId: m.id,
+        leadId: m.entity_id,
+        isCompleted: m.is_completed,
+        dueDate: m.due_date,
+        createdAt: m.created_at
+      })).slice(0, 5) // Log first 5 meetings for debugging
+    });
+    
     const appointmentsScheduled = meetings.length;
     const attendedDone = meetings.filter(t => t.is_completed).length;
 
