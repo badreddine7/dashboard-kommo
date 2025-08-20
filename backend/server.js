@@ -379,13 +379,33 @@ async function aggregate(accountId, token, useCache = true) {
   
   // Group messages by user
   const messagesByUser = {};
+  let totalMessagesProcessed = 0;
+  let messagesWithValidUsers = 0;
+  let messagesWithInvalidUsers = 0;
 
   messageEvents.forEach(e => {
+    totalMessagesProcessed++;
     const uid = e.created_by;  
-    messagesByUser[uid] = messagesByUser[uid] || { messages: 0, emails: 0, sms: 0 };
-    if (e.type === 'outgoing_chat_message')    messagesByUser[uid].messages++;
-    else if (e.type === 'outgoing_mail')        messagesByUser[uid].emails++;
-    else if (e.type === 'outgoing_sms')         messagesByUser[uid].sms++;
+    
+    // Check if this user exists in our reps
+    if (reps[uid]) {
+      messagesWithValidUsers++;
+      messagesByUser[uid] = messagesByUser[uid] || { messages: 0, emails: 0, sms: 0 };
+      if (e.type === 'outgoing_chat_message')    messagesByUser[uid].messages++;
+      else if (e.type === 'outgoing_mail')        messagesByUser[uid].emails++;
+      else if (e.type === 'outgoing_sms')         messagesByUser[uid].sms++;
+    } else {
+      messagesWithInvalidUsers++;
+    }
+  });
+  
+  logger.info('Message processing summary', { 
+    totalMessageEvents: messageEvents.length,
+    totalMessagesProcessed,
+    messagesWithValidUsers,
+    messagesWithInvalidUsers,
+    validUserIds: Object.keys(reps),
+    messageUserIds: [...new Set(messageEvents.map(e => e.created_by))].slice(0, 10) // First 10 unique user IDs
   });
   logger.debug('Messages aggregated by user', { messagesByUser });
 
