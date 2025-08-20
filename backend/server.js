@@ -260,7 +260,8 @@ async function aggregate(accountId, token, useCache = true) {
   logger.info('Fetching message events (last 1 month)...');
   const messageEvents = await paginate(accountId, refreshedToken, 'events', {
     'filter[type]': ['outgoing_mail', 'outgoing_chat_message', 'outgoing_sms'],
-    'filter[created_at][from]': oneMonthAgo
+    'filter[created_at][from]': oneMonthAgo,
+    'limit': 500 // Limit to 500 messages per page for performance
   });
   
   logger.info('Fetching activity events (last 7 days only for performance)...');
