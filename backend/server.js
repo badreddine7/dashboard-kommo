@@ -256,7 +256,9 @@ async function aggregate(accountId, token, useCache = true) {
 
   // Fetch data sequentially to avoid overwhelming the API
   logger.info('Fetching users...');
-  const users = await paginate(accountId, refreshedToken, 'users');
+  const all_users = await paginate(accountId, refreshedToken, 'users');
+  //keep only active users
+  const users = all_users.filter(u => u.rights.is_active);
   
   logger.info('Fetching leads (last 1 month)...');
   const oneMonthAgo = Math.floor((Date.now() - 30 * 24 * 3600 * 1000) / 1000);
