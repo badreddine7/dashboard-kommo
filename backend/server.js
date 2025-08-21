@@ -554,6 +554,18 @@ async function aggregate(accountId, token, useCache = true) {
       'Unreachable Lead', 'No Contact', 'Wrong Contact', 'Not Available', 'UNREACHEABLE', 'Unreacheable',
       'Missed Appointment', 'General Information Request (No Interest)'
     ];
+
+    // Calculate appointments from pipeline stages (not tasks)
+    // Scheduled = leads in appointment-related stages
+    // Attended = leads that progressed past appointment stages to more advanced stages
+    const appointmentStages = [
+      'Appointment Scheduled', 'Appointment 24 Hours', 'Meeting Scheduled',
+      'Appointment', 'Meeting', 'Scheduled', 'Booked'
+    ];
+    const attendedStages = [
+      'Agreed for IL', 'Offer made', 'Negociation', 'taking decision SC',
+      'Awaiting Payment', 'Paid Full 2026', 'New student', 'Closed - won'
+    ];
     
     // Categorize leads based on pipeline stages with improved matching
     const sqlLeads = leadStages.filter(({ stageName }) => {
@@ -600,42 +612,39 @@ async function aggregate(accountId, token, useCache = true) {
     const baseCount = Math.max(0, totalLeads - unreachableCount);
     const sqlRate = baseCount > 0 ? sqlCount / baseCount : 0;
 
-    // Use tasks data to estimate appointments (same logic as before)
-    // Scheduled = all 'meeting' tasks created for SQL leads
-    // Attended = those completed, missed = scheduled - completed
-    const sqlLeadIds = sqlLeads.map(({ lead }) => lead.id);
     
-    logger.debug('Appointment calculation for rep', {
+    // Find leads in appointment stages
+    const appointmentLeads = leadStages.filter(({ stageName }) => {
+      const stageLower = stageName.toLowerCase();
+      return appointmentStages.some(stage => {
+        const patternLower = stage.toLowerCase();
+        return stageLower === patternLower || stageLower.includes(patternLower) || patternLower.includes(stageLower);
+      });
+    });
+    
+    // Find leads that attended (progressed to attended stages)
+    const attendedLeads = leadStages.filter(({ stageName }) => {
+      const stageLower = stageName.toLowerCase();
+      return attendedStages.some(stage => {
+        const patternLower = stage.toLowerCase();
+        return stageLower === patternLower || stageLower.includes(patternLower) || patternLower.includes(stageLower);
+      });
+    });
+    
+    logger.debug('Appointment calculation from pipeline stages for rep', {
       repId: uid,
       repName: r.name,
       sqlLeadsCount: sqlLeads.length,
-      sqlLeadIds: sqlLeadIds.slice(0, 10), // Log first 10 for debugging
-      totalTasksCount: tasks.length,
-      tasksForThisRep: tasks.filter(t => t.created_by === uid).length
+      appointmentStages: appointmentStages,
+      attendedStages: attendedStages,
+      appointmentLeadsCount: appointmentLeads.length,
+      attendedLeadsCount: attendedLeads.length,
+      appointmentLeadStages: [...new Set(appointmentLeads.map(({ stageName }) => stageName))],
+      attendedLeadStages: [...new Set(attendedLeads.map(({ stageName }) => stageName))]
     });
     
-    const meetings = tasks.filter(t => 
-      t.task_type_id === 2 && 
-      t.entity_type === 'leads' && 
-      sqlLeadIds.includes(Number(t.entity_id)) && 
-      t.created_by === uid
-    );
-    
-    logger.debug('Meetings found for rep', {
-      repId: uid,
-      repName: r.name,
-      totalMeetings: meetings.length,
-      meetingDetails: meetings.map(m => ({
-        taskId: m.id,
-        leadId: m.entity_id,
-        isCompleted: m.is_completed,
-        dueDate: m.due_date,
-        createdAt: m.created_at
-      })).slice(0, 5) // Log first 5 meetings for debugging
-    });
-    
-    const appointmentsScheduled = meetings.length;
-    const attendedDone = meetings.filter(t => t.is_completed).length;
+    const appointmentsScheduled = appointmentLeads.length;
+    const attendedDone = attendedLeads.length;
 
     const appointmentRate = sqlCount > 0 ? appointmentsScheduled / sqlCount : 0;
     const attendanceRate = appointmentsScheduled > 0 ? attendedDone / appointmentsScheduled : 0;
