@@ -391,7 +391,11 @@ async function aggregate(accountId, token, useCache = true) {
   .reduce((map, e) => {
     const id = e.entity_id;
     map[id] = map[id] || [];
-    map[id].push({ status: e.value_after[0].lead_status.id, ts: e.created_at });
+    map[id].push({ 
+      status_before: e.value_before[0]?.lead_status?.id || 0, 
+      status_after: e.value_after[0]?.lead_status?.id || 0, 
+      ts: e.created_at 
+    });
     return map;
   }, {});
   
@@ -526,129 +530,157 @@ async function aggregate(accountId, token, useCache = true) {
     }
 
 
-    // ── SALES FUNNEL METRICS FROM PIPELINE STAGES ──
 
-    // Calculate the same metrics but using pipeline stages instead of tags
-    // SQL = leads in qualification/proposal stages (not new, not won/lost)
-    // Unreachable = leads in early stages that haven't progressed
-    // Not SQL = leads that are clearly not qualified (won/lost without qualification)
+
+    // ── SALES FUNNEL CONVERSION METRICS FROM EVENTS ──
+
+    // Simple conversion tracking based on lead status change events
+    // Track exactly 4 conversions: new lead to sql, sql to appointment, appointment to attended, attended to won
     
-    // Get stage names for each lead
-    const leadStages = r.leads.map(l => {
-      const stageName = getStageNameFromCache(stageCache, l.pipeline_id, l.status_id);
-      return { lead: l, stageName: stageName };
-    });
-    
-    // Define pipeline-based categorization using actual Kommo pipeline stages
-    // Based on provided pipeline data with IDs and names
+    // Define stage categories for simple matching
     const sqlStages = [
-      'Qualified Lead', 'Contacted', 'Initial Contact', 'Proposal Sent', 'Quote Sent', 'Negotiation', 'In Discussion',
-      'Qualified', 'Contacted', 'Proposal', 'Quote', 'Negotiation', 'Discussion', 'Qualification', 'Meeting Scheduled',
-      'Follow Up', 'Proposal Review', 'Contract Sent', 'Contract Review',
-      'Interested', 'Appointment Scheduled', 'Appointment 24 Hours', 'Agreed for IL', 'Offer made', 'Negociation',
-      'taking decision SC', 'General Info SC', 'Interested in August', 'Interested  No Appointment',
-      'Awaiting Payment'
+      'Qualified Lead', 'Qualified', 'Qualification', 'Initial Contact', 'Contacted', 'First Contact', 'INITIAL CONTACT', 'New Lead', 'New Leads', 'New.Lead', 'Nouveau leads', 'Incoming leads', 'incoming requests', 'unfiltered leqds',
+      'Interested', 'Interested Lead', 'Interested in August', 'Interested No Appointment', 'Interested no apoointment', 'Interested 2026',
+      'Follow Up', 'Follow-up', 'Follow Up Call', 'Follow Up Email', 'Follow Up SMS',
+      'Proposal Sent', 'Proposal', 'Proposal Review', 'Quote Sent', 'Quote', 'Quote Review',
+      'Contract Sent', 'Contract', 'Contract Review', 'Agreement Sent',
+      'Negotiation', 'Negociation', 'In Discussion', 'Discussion', 'Negotiating',
+      'Offer made', 'Offer Sent', 'Offer Review', 'Pitch', 'Awaiting Response', 'Awaiting Approaval', 'taking decision', 'Taking Decison Inntensives', 'taking decision SC', 'Argumente',
+      'General Info SC', 'General Information', 'Information Gathering', 'Generaal information',
+      'Graduated 2025', 'Temp Stage', 'SC 2024', 'Old Leads', 'Summer Camp', 'Lead Campaign', 'Online Classes', 'test', 'GE 2024', 'Good 2024 leads', 'IT BOT', 'old students', 'VP', 'VP1', 'VP2', 'VP3', 'Started Testing', 'Finished testing', 'daily', 'Game Design', 'Building Websites', 'Coding Knight'
     ];
-    const unreachableStages = [
-      'Unreachable', 'No Answer', 'Wrong Number', 'No Response', 'Not Interested', 'Busy', 'Call Back Later',
-      'Unreachable Lead', 'No Contact', 'Wrong Contact', 'Not Available', 'UNREACHEABLE', 'Unreacheable',
-      'Missed Appointment', 'General Information Request (No Interest)'
-    ];
-
-    // Calculate appointments from pipeline stages (not tasks)
-    // Scheduled = leads in appointment-related stages
-    // Attended = leads that progressed past appointment stages to more advanced stages
+    
     const appointmentStages = [
-      'Appointment Scheduled', 'Appointment 24 Hours', 'Meeting Scheduled',
-      'Appointment', 'Meeting', 'Scheduled', 'Booked'
+      'Appointment Scheduled', 'Appointment 24 Hours', 'Meeting Scheduled', 'Appointment Today', 'Appointment in 24h', 'Scheduled appointment',
+      'Appointment', 'Meeting', 'Scheduled', 'Booked', 'Meeting Booked', 'Appointment Booked',
+      'Call Scheduled', 'Call Booked', 'Demo Scheduled', 'Demo Booked',
+      'Consultation Scheduled', 'Consultation Booked', 'Session Scheduled',
+      'Ready for Meeting', 'Meeting Ready', 'Appointment Ready', 'Scheduling Confirmed',
+      'Selects a Date and Site of the IL', 'Selects a Date and Site',
+      'IL scheduled', 'Scheduled IL', 'IL 24h', 'IL today',
+      'Rendez vous', 'Meeting today',
+      'TIL Date&time', 'Agreed to meeting'
     ];
+    
     const attendedStages = [
-      'Agreed for IL', 'Offer made', 'Negociation', 'taking decision SC',
-      'Awaiting Payment', 'Paid Full 2026', 'New student', 'Closed - won'
+      'Agreed for IL', 'Agreed', 'Agreement Reached', 'Agreement Confirmed',
+      'Offer Accepted',
+      'Visited the IL', 'Visited IL',
+      'Attended IL', 'Attended Appointment', 'Attended  Appointment', 'Appointment Attended', 'IL Attended', 'Rendez vous assiste',
+      'Confirmed registration to the group',
+      'Awaiting Payment', 'Payment Pending', 'Payment Awaiting', 'Payment Review', 'Awating PAYEMENT', 'attente de paiment',
+      'Paid Full 2026', 'Payment Received', 'Payment Confirmed', 'Paid for the whole Course',
+      'New student', 'Student Enrolled', 'Enrollment Confirmed', 'all students', 'Digital Literacy', 'Summer camp 1st Week', 'Summer Camp Second Week', 'Summer camp Third Week', 'Summer camp one month', 'Boot camp digital art', 'Bootcamp 1st period', 'bootcamp second period', 'bootcamp 1 month', 'UNITY', 'continué les séances',
+      'Trimester', 'Semestriel', '1 part', '2 parts', 'Free', 'Finishing Course', 'Remboursement sc 2024', 'closed deals 2024', 'Certified', 'Transfered to training', 'finished training',
+      'Won', 'Deal Won', 'Closed - won', 'Success', 'Completed', 'Finalized', 'Closed Won', 'Conversion Complete', 'Deal Closed'
     ];
     
-    // Categorize leads based on pipeline stages with improved matching
-    const sqlLeads = leadStages.filter(({ stageName }) => {
+    // Helper function to check if a stage matches any pattern in an array
+    const stageMatches = (stageName, stageArray) => {
       const stageLower = stageName.toLowerCase();
-      return sqlStages.some(stage => {
+      return stageArray.some(stage => {
         const patternLower = stage.toLowerCase();
-        // Check for exact match or contains match
         return stageLower === patternLower || stageLower.includes(patternLower) || patternLower.includes(stageLower);
       });
-    });
+    };
     
-    const unreachableLeads = leadStages.filter(({ stageName }) => {
-      const stageLower = stageName.toLowerCase();
-      return unreachableStages.some(stage => {
-        const patternLower = stage.toLowerCase();
-        // Check for exact match or contains match
-        return stageLower === patternLower || stageLower.includes(patternLower) || patternLower.includes(stageLower);
+    // Helper function to categorize a stage
+    const categorizeStage = (stageName) => {
+      if (stageMatches(stageName, sqlStages)) return 'SQL';
+      if (stageMatches(stageName, appointmentStages)) return 'Appointment';
+      if (stageMatches(stageName, attendedStages)) return 'Attended';
+      if (stageName.toLowerCase().includes('won') || stageName.toLowerCase().includes('deal won') || stageName.toLowerCase().includes('closed - won')) return 'Won';
+      return 'Other';
+    };
+    
+    // Initialize conversion dictionary
+    const conversions = {
+      'new_lead_to_sql': 0,
+      'sql_to_appointment': 0,
+      'appointment_to_attended': 0,
+      'attended_to_won': 0
+    };
+    
+    // Track totals for denominator calculations
+    const totals = {
+      'new_leads': 0,
+      'sql_leads': 0,
+      'appointment_leads': 0,
+      'attended_leads': 0
+    };
+    
+    // Process each lead's events to track conversions
+    r.leads.forEach(lead => {
+      const leadEvents = eventsByLead[lead.id] || [];
+      
+      // Sort events by timestamp to process chronologically
+      const sortedEvents = leadEvents.sort((a, b) => a.ts - b.ts);
+      
+      // Track what stages this lead has been through
+      let hasBeenSql = false;
+      let hasBeenAppointment = false;
+      let hasBeenAttended = false;
+      
+      // Process each status change event
+      sortedEvents.forEach(event => {
+        const stageBeforeName = getStageNameFromCache(stageCache, lead.pipeline_id, event.status_before);
+        const stageAfterName = getStageNameFromCache(stageCache, lead.pipeline_id, event.status_after);
+        const stageBeforeCategory = categorizeStage(stageBeforeName);
+        const stageAfterCategory = categorizeStage(stageAfterName);
+        
+        // Mark what stages this lead has been through
+        if (stageAfterCategory === 'SQL') hasBeenSql = true;
+        if (stageAfterCategory === 'Appointment') hasBeenAppointment = true;
+        if (stageAfterCategory === 'Attended') hasBeenAttended = true;
+        
+        // Track conversions based on stage transitions using value_before and value_after
+        if (stageBeforeCategory === 'Other' && stageAfterCategory === 'SQL') {
+          conversions['new_lead_to_sql']++;
+        }
+        if (stageBeforeCategory === 'SQL' && stageAfterCategory === 'Appointment') {
+          conversions['sql_to_appointment']++;
+        }
+        if (stageBeforeCategory === 'Appointment' && stageAfterCategory === 'Attended') {
+          conversions['appointment_to_attended']++;
+        }
+        if (stageBeforeCategory === 'Attended' && stageAfterCategory === 'Won') {
+          conversions['attended_to_won']++;
+        }
       });
+      
+      // Count totals for denominator calculations
+      if (hasBeenSql) totals['sql_leads']++;
+      if (hasBeenAppointment) totals['appointment_leads']++;
+      if (hasBeenAttended) totals['attended_leads']++;
+      totals['new_leads']++; // All leads start as new
     });
     
-    // Debug: Log stage categorization for this rep
-    const uniqueStages = [...new Set(leadStages.map(({ stageName }) => stageName))];
-    const uncategorizedLeads = leadStages.filter(({ stageName }) => {
-      const stageLower = stageName.toLowerCase();
-      const isSql = sqlStages.some(s => stageLower.includes(s.toLowerCase()) || s.toLowerCase().includes(stageLower));
-      const isUnreachable = unreachableStages.some(s => stageLower.includes(s.toLowerCase()) || s.toLowerCase().includes(stageLower));
-      return !isSql && !isUnreachable;
-    });
+    // Calculate conversion rates
+    const newLeadToSqlRate = totals['new_leads'] > 0 ? conversions['new_lead_to_sql'] / totals['new_leads'] : 0;
+    const sqlToAppointmentRate = totals['sql_leads'] > 0 ? conversions['sql_to_appointment'] / totals['sql_leads'] : 0;
+    const appointmentToAttendedRate = totals['appointment_leads'] > 0 ? conversions['appointment_to_attended'] / totals['appointment_leads'] : 0;
+    const attendedToWonRate = totals['attended_leads'] > 0 ? conversions['attended_to_won'] / totals['attended_leads'] : 0;
     
-    logger.debug('Sales funnel stage categorization for rep', {
+    // Debug: Log conversion tracking for this rep
+    logger.debug('Sales funnel conversion tracking for rep', {
       repId: uid,
       repName: r.name,
       totalLeads: totalLeads,
-      uniqueStages: uniqueStages,
-      sqlLeadsCount: sqlLeads.length,
-      unreachableLeadsCount: unreachableLeads.length,
-      uncategorizedLeadsCount: uncategorizedLeads.length,
-      uncategorizedStages: [...new Set(uncategorizedLeads.map(({ stageName }) => stageName))]
+      conversions,
+      totals,
+      conversionRates: {
+        newLeadToSqlRate: Number(newLeadToSqlRate.toFixed(3)),
+        sqlToAppointmentRate: Number(sqlToAppointmentRate.toFixed(3)),
+        appointmentToAttendedRate: Number(appointmentToAttendedRate.toFixed(3)),
+        attendedToWonRate: Number(attendedToWonRate.toFixed(3))
+      }
     });
     
-    // Calculate the same metrics as before
-    const sqlCount = sqlLeads.length;
-    const unreachableCount = unreachableLeads.length;
-    const baseCount = Math.max(0, totalLeads - unreachableCount);
-    const sqlRate = baseCount > 0 ? sqlCount / baseCount : 0;
-
-    
-    // Find leads in appointment stages
-    const appointmentLeads = leadStages.filter(({ stageName }) => {
-      const stageLower = stageName.toLowerCase();
-      return appointmentStages.some(stage => {
-        const patternLower = stage.toLowerCase();
-        return stageLower === patternLower || stageLower.includes(patternLower) || patternLower.includes(stageLower);
-      });
-    });
-    
-    // Find leads that attended (progressed to attended stages)
-    const attendedLeads = leadStages.filter(({ stageName }) => {
-      const stageLower = stageName.toLowerCase();
-      return attendedStages.some(stage => {
-        const patternLower = stage.toLowerCase();
-        return stageLower === patternLower || stageLower.includes(patternLower) || patternLower.includes(stageLower);
-      });
-    });
-    
-    logger.debug('Appointment calculation from pipeline stages for rep', {
-      repId: uid,
-      repName: r.name,
-      sqlLeadsCount: sqlLeads.length,
-      appointmentStages: appointmentStages,
-      attendedStages: attendedStages,
-      appointmentLeadsCount: appointmentLeads.length,
-      attendedLeadsCount: attendedLeads.length,
-      appointmentLeadStages: [...new Set(appointmentLeads.map(({ stageName }) => stageName))],
-      attendedLeadStages: [...new Set(attendedLeads.map(({ stageName }) => stageName))]
-    });
-    
-    const appointmentsScheduled = appointmentLeads.length;
-    const attendedDone = attendedLeads.length;
-
-    const appointmentRate = sqlCount > 0 ? appointmentsScheduled / sqlCount : 0;
-    const attendanceRate = appointmentsScheduled > 0 ? attendedDone / appointmentsScheduled : 0;
-    const saleRate = attendedDone > 0 ? wonLeads / attendedDone : 0;
+    // Use the conversion rates for the sales funnel metrics
+    const sqlRate = newLeadToSqlRate; // New Lead to SQL conversion rate
+    const appointmentRate = sqlToAppointmentRate; // SQL to Appointment conversion rate
+    const attendanceRate = appointmentToAttendedRate; // Appointment to Attended conversion rate
+    const saleRate = attendedToWonRate; // Attended to Won conversion rate
     const overallFunnelRate = totalLeads > 0 ? wonLeads / totalLeads : 0;
 
     // ── END METRICS CODE ──
@@ -661,10 +693,10 @@ async function aggregate(accountId, token, useCache = true) {
         : null;
       const leadEvents = eventsByLead[l.id] || [];
       // Add the initial created_at event
-      leadEvents.unshift({ status: 0, ts: leadStart});
+      leadEvents.unshift({ status_before: 0, status_after: 0, ts: leadStart});
       const transitions = leadEvents
         .sort((a,b) => a.ts - b.ts)
-        .map(({ status, ts }) => ({ status, ts }))
+        .map(({ status_after, ts }) => ({ status: status_after, ts }))
         .filter((_, i, arr) => i === 0 || arr[i].status !== arr[i - 1].status);
 
       const stageTimes = {};
@@ -773,17 +805,17 @@ async function aggregate(accountId, token, useCache = true) {
         average_days: Number((avgPipelineTime || 0).toFixed(2)),
         median_days: Number((medianPipelineTime || 0).toFixed(2))
       },
-             sales_funnel: {
-         sql_leads: sqlCount,
-         unreachable_leads: unreachableCount,
-         sql_rate: Number(sqlRate.toFixed(3)),
-         appointments: appointmentsScheduled,
-         appointment_rate: Number(appointmentRate.toFixed(3)),
-         attended: attendedDone,
-         attendance_rate: Number(attendanceRate.toFixed(3)),
-         sale_rate: Number(saleRate.toFixed(3)),
-         overall_funnel_rate: Number(overallFunnelRate.toFixed(3))
-       },
+                           sales_funnel: {
+          sql_leads: totals['sql_leads'],
+          unreachable_leads: 0, // Not tracked in event-based approach
+          sql_rate: Number(sqlRate.toFixed(3)),
+          appointments: totals['appointment_leads'],
+          appointment_rate: Number(appointmentRate.toFixed(3)),
+          attended: totals['attended_leads'],
+          attendance_rate: Number(attendanceRate.toFixed(3)),
+          sale_rate: Number(saleRate.toFixed(3)),
+          overall_funnel_rate: Number(overallFunnelRate.toFixed(3))
+        },
       incoming_leads: incomingByUser[uid] || {}
     };
   });
