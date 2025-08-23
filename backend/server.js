@@ -567,7 +567,7 @@ async function aggregate(accountId, token, useCache = true) {
     
     // Define stage categories for simple matching
     const sqlStages = [
-      'Qualified Lead', 'Qualified', 'Qualification', 'Initial Contact', 'Contacted', 'First Contact', 'INITIAL CONTACT', 'New Lead', 'New Leads', 'New.Lead', 'Nouveau leads', 'Incoming leads', 'incoming requests', 'unfiltered leqds',
+      'Qualified Lead', 'Qualified', 'Qualification', 'Initial Contact', 'Contacted', 'First Contact', 'INITIAL CONTACT', 'unfiltered leqds',
       'Interested', 'Interested Lead', 'Interested in August', 'Interested No Appointment', 'Interested no apoointment', 'Interested 2026',
       'Follow Up', 'Follow-up', 'Follow Up Call', 'Follow Up Email', 'Follow Up SMS',
       'Proposal Sent', 'Proposal', 'Proposal Review', 'Quote Sent', 'Quote', 'Quote Review',

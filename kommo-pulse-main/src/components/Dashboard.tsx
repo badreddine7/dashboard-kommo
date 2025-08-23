@@ -807,7 +807,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               icon={Target}
               variant="success"
               subtitle={`${currentUser.sales_funnel.sql_leads} SQL leads`}
-              tooltip="New Lead to SQL conversion rate - the percentage of new leads that successfully transitioned to Sales Qualified Lead status in the last 1 month. Calculated by tracking lead_status_changed events and counting transitions from 'Other' stages to 'SQL' stages. SQL stages include: Qualified Lead, Interested, Follow Up, Proposal Sent, Negotiation, etc. To improve this metric in Kommo: focus on lead qualification processes, improve initial contact quality, and ensure proper stage progression tracking."
+              tooltip="New Lead to SQL conversion rate - the percentage of new leads that successfully transitioned to Sales Qualified Lead status in the last 1 month. Calculated by tracking lead_status_changed events and counting transitions from 'Other' stages to 'SQL' stages. SQL stages include: New Lead, Interested, Follow Up, Proposal Sent, Negotiation, etc. To improve this metric in Kommo: focus on lead qualification processes, improve initial contact quality, and ensure proper stage progression tracking."
             />
             <MetricCard
               title="Appointment Rate"
@@ -823,14 +823,14 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               icon={CheckCircle}
               variant="warning"
               subtitle={`${currentUser.sales_funnel.attended} attended`}
-              tooltip="Appointment to Attended conversion rate - the percentage of leads in appointment stages that successfully transitioned to attended stages in the last 1 month. Calculated by tracking lead_status_changed events and counting transitions from 'Appointment' stages to 'Attended' stages. Attended stages include: Attended IL, Attended Appointment, Visited IL, etc. To improve this metric in Kommo: focus on appointment attendance, send reminders, confirm meetings, and ensure proper stage progression tracking."
+              tooltip="Appointment to Attended conversion rate - the percentage of leads in appointment stages that successfully transitioned to attended stages in the last 1 month. Calculated by tracking lead_status_changed events and counting transitions from 'Appointment' stages to 'Attended' stages. Attended stages include: Attended IL, Attended Appointment, Visited IL, Payment stages, etc. To improve this metric in Kommo: focus on appointment attendance, send reminders, confirm meetings, and ensure proper stage progression tracking."
             />
             <MetricCard
               title="Sale Rate"
               value={`${(currentUser.sales_funnel.sale_rate * 100).toFixed(1)}%`}
               icon={TrendingUp}
               variant="success"
-              tooltip="Attended to Won conversion rate - the percentage of leads in attended stages that successfully transitioned to won stages in the last 1 month. Calculated by tracking lead_status_changed events and counting transitions from 'Attended' stages to 'Won' stages. Won stages include: Closed - won, Deal Won, Success, etc. To improve this metric in Kommo: focus on closing techniques, prepare thoroughly for meetings, follow up after appointments, and ensure proper stage progression tracking."
+              tooltip="Attended to Won conversion rate - the percentage of leads that have been in attended stages and successfully transitioned to won stages in the last 1 month. Calculated by tracking lead_status_changed events and counting transitions from 'Attended' stages to 'Won' stages. Won stages include: Closed - won, Deal Won, Success, Completed, etc. To improve this metric in Kommo: focus on closing techniques, prepare thoroughly for meetings, follow up after appointments, and ensure proper stage progression tracking."
             />
             <MetricCard
               title="Pipeline Health"
