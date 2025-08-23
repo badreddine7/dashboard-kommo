@@ -17,8 +17,10 @@ const logger = {
     console.warn(`[WARN] ${new Date().toISOString()}: ${message}`, data);
   },
   debug: (message, data = {}) => {
-    // Always log debug info in production for timing analysis
-    console.log(`[DEBUG] ${new Date().toISOString()}: ${message}`, data);
+    // Only log debug info in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[DEBUG] ${new Date().toISOString()}: ${message}`, data);
+    }
   }
 };
 
