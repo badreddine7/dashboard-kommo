@@ -216,10 +216,11 @@ async function fetchPipelineStages(accountId, token) {
     }
   }
   
-  logger.debug('Pipeline stages fetched', { 
+  logger.info('Pipeline stages fetched', { 
     accountId, 
     pipelinesCount: pipelines._embedded?.pipelines?.length || 0,
-    stagesCount: Object.keys(stageCache).length 
+    stagesCount: Object.keys(stageCache).length,
+    sampleStages: Object.entries(stageCache).slice(0, 10).map(([key, name]) => ({ key, name }))
   });
   
   return stageCache;
@@ -343,7 +344,13 @@ async function aggregate(accountId, token, useCache = true) {
     usersCount: users.length,
     leadsCount: leads.length,
     tasksCount: tasks.length,
-    eventsCount: events.length
+    eventsCount: events.length,
+    eventsByLeadCount: Object.keys(eventsByLead).length,
+    sampleEventsByLead: Object.entries(eventsByLead).slice(0, 3).map(([leadId, events]) => ({
+      leadId,
+      eventsCount: events.length,
+      sampleEvent: events[0] || null
+    }))
   });
 
   const reps = {};
@@ -689,7 +696,7 @@ async function aggregate(accountId, token, useCache = true) {
     const attendedToWonRate = totals['attended_leads'] > 0 ? conversions['attended_to_won'] / totals['attended_leads'] : 0;
     
     // Debug: Log conversion tracking for this rep
-    logger.debug('Sales funnel conversion tracking for rep', {
+    logger.info('Sales funnel conversion tracking for rep', {
       repId: uid,
       repName: r.name,
       totalLeads: totalLeads,
@@ -700,7 +707,23 @@ async function aggregate(accountId, token, useCache = true) {
         sqlToAppointmentRate: Number(sqlToAppointmentRate.toFixed(3)),
         appointmentToAttendedRate: Number(appointmentToAttendedRate.toFixed(3)),
         attendedToWonRate: Number(attendedToWonRate.toFixed(3))
-      }
+      },
+      // Add debugging for stage categorization
+      sampleLeadEvents: r.leads.slice(0, 3).map(lead => {
+        const leadEvents = eventsByLead[lead.id] || [];
+        return {
+          leadId: lead.id,
+          currentStage: getStageNameFromCache(stageCache, lead.pipeline_id, lead.status_id),
+          currentStageCategory: categorizeStage(getStageNameFromCache(stageCache, lead.pipeline_id, lead.status_id)),
+          eventsCount: leadEvents.length,
+          sampleEvents: leadEvents.slice(0, 2).map(event => ({
+            statusBefore: getStageNameFromCache(stageCache, lead.pipeline_id, event.status_before),
+            statusAfter: getStageNameFromCache(stageCache, lead.pipeline_id, event.status_after),
+            beforeCategory: categorizeStage(getStageNameFromCache(stageCache, lead.pipeline_id, event.status_before)),
+            afterCategory: categorizeStage(getStageNameFromCache(stageCache, lead.pipeline_id, event.status_after))
+          }))
+        };
+      })
     });
     
     // Use the conversion rates for the sales funnel metrics
