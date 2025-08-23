@@ -496,9 +496,34 @@ async function aggregate(accountId, token, useCache = true) {
     const winRate = totalLeads > 0 ? wonLeads / totalLeads : 0;
 
     // Average cycle time: updated_at − created_at
+    // Kommo API returns Unix timestamps (seconds), so we need to convert to milliseconds
     const cycleTimes = r.leads
       .filter(l => l.created_at && l.updated_at)
-      .map(l => new Date(l.updated_at).getTime() - new Date(l.created_at).getTime());
+      .map(l => {
+        // Convert Unix timestamps to milliseconds
+        const createdMs = l.created_at * 1000;
+        const updatedMs = l.updated_at * 1000;
+        return updatedMs - createdMs;
+      });
+    
+    // Debug cycle time calculation
+    logger.debug('Cycle time calculation for rep', {
+      repId: uid,
+      repName: r.name,
+      totalLeads: r.leads.length,
+      leadsWithTimestamps: r.leads.filter(l => l.created_at && l.updated_at).length,
+      cycleTimes: cycleTimes.slice(0, 5), // First 5 cycle times for debugging
+      sampleLead: r.leads[0] ? {
+        id: r.leads[0].id,
+        created_at: r.leads[0].created_at,
+        updated_at: r.leads[0].updated_at,
+        createdDate: new Date(r.leads[0].created_at * 1000),
+        updatedDate: new Date(r.leads[0].updated_at * 1000),
+        cycleTimeMs: cycleTimes[0] || 0,
+        cycleTimeDays: cycleTimes[0] ? cycleTimes[0] / (1000 * 60 * 60 * 24) : 0
+      } : null
+    });
+    
     const avgCycleDays = cycleTimes.length
       ? cycleTimes.reduce((a, b) => a + b) / cycleTimes.length / 1000 / 60 / 60 / 24
       : null;

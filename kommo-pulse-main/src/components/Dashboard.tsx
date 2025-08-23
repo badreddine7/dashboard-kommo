@@ -610,7 +610,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               value={currentUser.avg_cycle_days ? `${currentUser.avg_cycle_days.toFixed(1)} days` : 'N/A'}
               icon={Clock}
               variant="default"
-              tooltip="The average time it takes for a lead to move through the entire sales pipeline from creation to closure in the last 1 month. Calculated as: (Updated Date - Created Date) for closed leads. To improve this metric in Kommo: set realistic deadlines, move leads through pipeline stages promptly, update lead status regularly, and use automation to reduce manual delays."
+              tooltip="The average time from lead creation to last update in the last 1 month. Calculated as: (Last Updated Date - Created Date) for all leads. This includes both active and closed leads. For closed deals, this represents the full sales cycle time. For active leads, this shows how long they've been in the pipeline. To improve this metric in Kommo: update leads regularly with notes/activities, move leads through stages promptly, and ensure timely follow-up on all leads."
             />
             <MetricCard
               title="Task Completion"
@@ -807,7 +807,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               icon={Target}
               variant="success"
               subtitle={`${currentUser.sales_funnel.sql_leads} SQL leads`}
-              tooltip="Sales Qualified Lead rate - the percentage of leads that have been qualified as having genuine sales potential in the last 1 month. Calculated as: (SQL Leads ÷ (Total Leads - Unreachable Leads)) × 100. SQL leads include: Interested prospects, appointments, negotiations, and successful conversions. Unreachable leads include: contacts that can't be reached, missed appointments, and lost deals. To improve this metric in Kommo: properly categorize leads by pipeline stages, ensure accurate stage progression, and maintain clean pipeline data."
+              tooltip="New Lead to SQL conversion rate - the percentage of new leads that successfully transitioned to Sales Qualified Lead status in the last 1 month. Calculated by tracking lead_status_changed events and counting transitions from 'Other' stages to 'SQL' stages. SQL stages include: Qualified Lead, Interested, Follow Up, Proposal Sent, Negotiation, etc. To improve this metric in Kommo: focus on lead qualification processes, improve initial contact quality, and ensure proper stage progression tracking."
             />
             <MetricCard
               title="Appointment Rate"
@@ -815,7 +815,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               icon={Calendar}
               variant="accent"
               subtitle={`${currentUser.sales_funnel.appointments} scheduled`}
-              tooltip="The percentage of SQL leads that resulted in scheduled appointments or meetings in the last 1 month. Calculated as: (Scheduled Appointments ÷ SQL Leads) × 100. To improve this metric in Kommo: create meeting tasks (task_type_id: 2) for SQL leads, ensure proper follow-up scheduling, use calendar integration, and track appointment outcomes consistently."
+              tooltip="SQL to Appointment conversion rate - the percentage of SQL leads that successfully transitioned to appointment stages in the last 1 month. Calculated by tracking lead_status_changed events and counting transitions from 'SQL' stages to 'Appointment' stages. Appointment stages include: Appointment Scheduled, Meeting Scheduled, Call Booked, Demo Scheduled, etc. To improve this metric in Kommo: focus on appointment scheduling processes, improve follow-up techniques, and ensure proper stage progression tracking."
             />
             <MetricCard
               title="Attendance Rate"
@@ -823,14 +823,14 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               icon={CheckCircle}
               variant="warning"
               subtitle={`${currentUser.sales_funnel.attended} attended`}
-              tooltip="The percentage of scheduled appointments that were actually attended by the prospect in the last 1 month. Calculated as: (Attended Appointments ÷ Scheduled Appointments) × 100. To improve this metric in Kommo: send appointment reminders, confirm meetings in advance, reschedule when needed, and mark meeting tasks as completed when attended."
+              tooltip="Appointment to Attended conversion rate - the percentage of leads in appointment stages that successfully transitioned to attended stages in the last 1 month. Calculated by tracking lead_status_changed events and counting transitions from 'Appointment' stages to 'Attended' stages. Attended stages include: Attended IL, Attended Appointment, Visited IL, etc. To improve this metric in Kommo: focus on appointment attendance, send reminders, confirm meetings, and ensure proper stage progression tracking."
             />
             <MetricCard
               title="Sale Rate"
               value={`${(currentUser.sales_funnel.sale_rate * 100).toFixed(1)}%`}
               icon={TrendingUp}
               variant="success"
-              tooltip="The percentage of attended appointments that resulted in closed-won deals in the last 1 month. Calculated as: (Won Deals ÷ Attended Appointments) × 100. To improve this metric in Kommo: focus on closing techniques, prepare thoroughly for meetings, follow up after appointments, and ensure leads are moved to 'Won' status (status_id: 142) when deals close."
+              tooltip="Attended to Won conversion rate - the percentage of leads in attended stages that successfully transitioned to won stages in the last 1 month. Calculated by tracking lead_status_changed events and counting transitions from 'Attended' stages to 'Won' stages. Won stages include: Closed - won, Deal Won, Success, etc. To improve this metric in Kommo: focus on closing techniques, prepare thoroughly for meetings, follow up after appointments, and ensure proper stage progression tracking."
             />
             <MetricCard
               title="Pipeline Health"
