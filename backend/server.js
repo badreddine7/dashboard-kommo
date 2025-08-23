@@ -637,7 +637,8 @@ async function aggregate(accountId, token, useCache = true) {
       'new_leads': 0,
       'sql_leads': 0,
       'appointment_leads': 0,
-      'attended_leads': 0
+      'attended_leads': 0,
+      'won_leads': 0
     };
     
     // Process each lead's events to track conversions
@@ -651,6 +652,7 @@ async function aggregate(accountId, token, useCache = true) {
       let hasBeenSql = false;
       let hasBeenAppointment = false;
       let hasBeenAttended = false;
+      let hasBeenWon = false;
       
       // Process each status change event
       sortedEvents.forEach(event => {
@@ -663,6 +665,7 @@ async function aggregate(accountId, token, useCache = true) {
         if (stageAfterCategory === 'SQL') hasBeenSql = true;
         if (stageAfterCategory === 'Appointment') hasBeenAppointment = true;
         if (stageAfterCategory === 'Attended') hasBeenAttended = true;
+        if (stageAfterCategory === 'Won') hasBeenWon = true;
         
         // Track conversions based on stage transitions using value_before and value_after
         if (stageBeforeCategory === 'Other' && stageAfterCategory === 'SQL') {
@@ -683,6 +686,7 @@ async function aggregate(accountId, token, useCache = true) {
       if (hasBeenSql) totals['sql_leads']++;
       if (hasBeenAppointment) totals['appointment_leads']++;
       if (hasBeenAttended) totals['attended_leads']++;
+      if (hasBeenWon) totals['won_leads']++;
       totals['new_leads']++; // All leads start as new
     });
     
@@ -690,7 +694,7 @@ async function aggregate(accountId, token, useCache = true) {
     const newLeadToSqlRate = totals['new_leads'] > 0 ? conversions['new_lead_to_sql'] / totals['new_leads'] : 0;
     const sqlToAppointmentRate = totals['sql_leads'] > 0 ? conversions['sql_to_appointment'] / totals['sql_leads'] : 0;
     const appointmentToAttendedRate = totals['appointment_leads'] > 0 ? conversions['appointment_to_attended'] / totals['appointment_leads'] : 0;
-    const attendedToWonRate = totals['attended_leads'] > 0 ? conversions['attended_to_won'] / totals['attended_leads'] : 0;
+    const attendedToWonRate = totals['won_leads'] > 0 ? conversions['attended_to_won'] / totals['won_leads'] : 0;
     
     // Debug: Log conversion tracking for this rep
     logger.info('Sales funnel conversion tracking for rep', {
