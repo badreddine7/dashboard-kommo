@@ -599,7 +599,10 @@ async function aggregate(accountId, token, useCache = true) {
       'Awaiting Payment', 'Payment Pending', 'Payment Awaiting', 'Payment Review', 'Awating PAYEMENT', 'attente de paiment',
       'Paid Full 2026', 'Payment Received', 'Payment Confirmed', 'Paid for the whole Course',
       'New student', 'Student Enrolled', 'Enrollment Confirmed', 'all students', 'Digital Literacy', 'Summer camp 1st Week', 'Summer Camp Second Week', 'Summer camp Third Week', 'Summer camp one month', 'Boot camp digital art', 'Bootcamp 1st period', 'bootcamp second period', 'bootcamp 1 month', 'UNITY', 'continué les séances',
-      'Trimester', 'Semestriel', '1 part', '2 parts', 'Free', 'Finishing Course', 'Remboursement sc 2024', 'closed deals 2024', 'Certified', 'Transfered to training', 'finished training',
+      'Trimester', 'Semestriel', '1 part', '2 parts', 'Free', 'Finishing Course', 'Remboursement sc 2024', 'closed deals 2024', 'Certified', 'Transfered to training', 'finished training'
+    ];
+    
+    const wonStages = [
       'Won', 'Deal Won', 'Closed - won', 'Success', 'Completed', 'Finalized', 'Closed Won', 'Conversion Complete', 'Deal Closed'
     ];
     
@@ -617,7 +620,7 @@ async function aggregate(accountId, token, useCache = true) {
       if (stageMatches(stageName, sqlStages)) return 'SQL';
       if (stageMatches(stageName, appointmentStages)) return 'Appointment';
       if (stageMatches(stageName, attendedStages)) return 'Attended';
-      if (stageName.toLowerCase().includes('won') || stageName.toLowerCase().includes('deal won') || stageName.toLowerCase().includes('closed - won')) return 'Won';
+      if (stageMatches(stageName, wonStages)) return 'Won';
       return 'Other';
     };
     
