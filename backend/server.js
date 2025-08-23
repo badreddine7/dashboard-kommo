@@ -589,6 +589,7 @@ async function aggregate(accountId, token, useCache = true) {
       'Rendez vous', 'Meeting today',
       'TIL Date&time', 'Agreed to meeting'
     ];
+
     
     const attendedStages = [
       'Agreed for IL', 'Agreed', 'Agreement Reached', 'Agreement Confirmed',
@@ -644,7 +645,7 @@ async function aggregate(accountId, token, useCache = true) {
     // Process each lead's events to track conversions
     r.leads.forEach(lead => {
       const leadEvents = eventsByLead[lead.id] || [];
-      
+    //
       // Sort events by timestamp to process chronologically
       const sortedEvents = leadEvents.sort((a, b) => a.ts - b.ts);
       
