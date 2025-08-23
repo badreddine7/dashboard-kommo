@@ -344,13 +344,7 @@ async function aggregate(accountId, token, useCache = true) {
     usersCount: users.length,
     leadsCount: leads.length,
     tasksCount: tasks.length,
-    eventsCount: events.length,
-    eventsByLeadCount: Object.keys(eventsByLead).length,
-    sampleEventsByLead: Object.entries(eventsByLead).slice(0, 3).map(([leadId, events]) => ({
-      leadId,
-      eventsCount: events.length,
-      sampleEvent: events[0] || null
-    }))
+    eventsCount: events.length
   });
 
   const reps = {};
