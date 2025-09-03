@@ -583,32 +583,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
                 <p className="text-muted-foreground mt-1">
                   Performance insights for {selectedUser ? `Sales Rep ${selectedUser}` : 'selected representative'}
                 </p>
-                {dateRange.startDate && dateRange.endDate && (
-                  <div className="text-xs text-muted-foreground mt-1">
-                    <p className="flex items-center gap-2">
-                      📅 Showing data from {dateRange.startDate.toLocaleDateString()} to {dateRange.endDate.toLocaleDateString()}
-                      <span className="px-2 py-1 bg-primary/10 text-primary rounded-full text-xs">
-                        {Math.ceil((dateRange.endDate.getTime() - dateRange.startDate.getTime()) / (1000 * 60 * 60 * 24))} days
-                      </span>
-                      {dateRange.startDate.toDateString() !== subDays(new Date(), 30).toDateString() && (
-                        <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs">
-                          🔄 Filtered
-                        </span>
-                      )}
-                    </p>
-                    <p className="text-xs opacity-75 mt-1">
-                      💡 Data is automatically scaled to match your selected time period
-                    </p>
-                    <p className="text-xs opacity-75 mt-1">
-                      📊 <strong>Note:</strong> Since backend provides 30-day data, metrics are proportionally scaled for shorter periods
-                    </p>
-                    {filteredData?.generated_at && (
-                      <p className="text-xs opacity-75 mt-1">
-                        🔄 Data last updated: {new Date(filteredData.generated_at).toLocaleString()}
-                      </p>
-                    )}
-                  </div>
-                )}
+
                 {settings.autoRefresh && (
                   <p className="text-xs text-muted-foreground mt-1">
                     Auto-refreshing every {settings.refreshInterval / 60} minutes
