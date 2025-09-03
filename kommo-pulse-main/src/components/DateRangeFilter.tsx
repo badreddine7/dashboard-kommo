@@ -4,7 +4,7 @@ import { Button } from './ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar as CalendarComponent } from './ui/calendar';
 import { cn } from '@/lib/utils';
-import { format, addDays, subDays, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
+import { format, addDays, subDays, isAfter, startOfDay, endOfDay } from 'date-fns';
 
 interface DateRangeFilterProps {
   onDateRangeChange: (startDate: Date | null, endDate: Date | null) => void;
@@ -26,45 +26,30 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
     setStartDate(thirtyDaysAgo);
     setEndDate(today);
     onDateRangeChange(thirtyDaysAgo, today);
-  }, []); // Remove onDateRangeChange dependency to avoid infinite loop
+  }, []);
 
-  const handleStartDateSelect = (date: Date | undefined) => {
-    if (!date) return;
+  const handleDateSelect = (range: { from?: Date; to?: Date } | undefined) => {
+    if (!range?.from) return;
     
-    const newStartDate = startOfDay(date);
-    const maxEndDate = addDays(newStartDate, 30);
+    const newStartDate = startOfDay(range.from);
+    let newEndDate = endDate;
     
-    setStartDate(newStartDate);
-    
-    // If end date is more than 30 days from start date, adjust it
-    if (endDate && isAfter(endDate, maxEndDate)) {
-      setEndDate(maxEndDate);
-      onDateRangeChange(newStartDate, maxEndDate);
-    } else if (endDate) {
-      onDateRangeChange(newStartDate, endDate);
+    if (range.to) {
+      newEndDate = endOfDay(range.to);
     } else {
-
-        // Set end date to start date + 30 days if no end date is set
-      const defaultEndDate = addDays(newStartDate, 30);
-      setEndDate(defaultEndDate);
-      onDateRangeChange(newStartDate, defaultEndDate);
+      // If only start date selected, set end date to start + 30 days
+      newEndDate = endOfDay(addDays(newStartDate, 30));
     }
-  };
-
-  const handleEndDateSelect = (date: Date | undefined) => {
-    if (!date) return;
-    
-    const newEndDate = endOfDay(date);
     
     // Ensure end date is not more than 30 days from start date
-    if (startDate && isAfter(newEndDate, addDays(startDate, 30))) {
-      const maxEndDate = addDays(startDate, 30);
-      setEndDate(maxEndDate);
-      onDateRangeChange(startDate, maxEndDate);
-    } else {
-      setEndDate(newEndDate);
-      onDateRangeChange(startDate, newEndDate);
+    if (isAfter(newEndDate, addDays(newStartDate, 30))) {
+      newEndDate = endOfDay(addDays(newStartDate, 30));
     }
+    
+    setStartDate(newStartDate);
+    setEndDate(newEndDate);
+    onDateRangeChange(newStartDate, newEndDate);
+    setIsOpen(false);
   };
 
   const handleQuickSelect = (days: number) => {
@@ -91,14 +76,14 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
       return format(startDate, 'MMM dd, yyyy');
     }
     
-    return `${format(startDate, 'MMM dd')} - ${format(endDate, 'MMM dd, yyyy')}`;
+    return `${format(startDate, 'MMM dd')} - ${format(endDate, 'MMM dd')}`;
   };
 
   const getDateRangeInfo = () => {
     if (!startDate || !endDate) return '';
     
     const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    return `${daysDiff} day${daysDiff !== 1 ? 's' : ''}`;
+    return `${daysDiff} days`;
   };
 
   return (
@@ -108,7 +93,7 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
           <Button
             variant="outline"
             className={cn(
-              "justify-start text-left font-normal",
+              "justify-start text-left font-normal min-w-[200px]",
               !startDate && !endDate && "text-muted-foreground"
             )}
           >
@@ -117,9 +102,12 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
-          <div className="p-3">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="font-medium">Select Date Range</h4>
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h4 className="font-medium">Select Date Range</h4>
+                <p className="text-xs text-muted-foreground mt-1">Choose up to 30 days</p>
+              </div>
               <Button
                 variant="ghost"
                 size="sm"
@@ -131,30 +119,30 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
             </div>
             
             {/* Quick Select Buttons */}
-            <div className="flex flex-wrap gap-1 mb-3">
+            <div className="flex gap-2 mb-4">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handleQuickSelect(7)}
-                className="h-7 px-2 text-xs"
+                className="flex-1 h-8 text-xs"
               >
-                7 days
+                Last 7 days
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handleQuickSelect(14)}
-                className="h-7 px-2 text-xs"
+                className="flex-1 h-8 text-xs"
               >
-                14 days
+                Last 14 days
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handleQuickSelect(30)}
-                className="h-7 px-2 text-xs"
+                className="flex-1 h-8 text-xs"
               >
-                30 days
+                Last 30 days
               </Button>
             </div>
             
@@ -166,14 +154,7 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
                 from: startDate || undefined,
                 to: endDate || undefined,
               }}
-              onSelect={(range) => {
-                if (range?.from) {
-                  handleStartDateSelect(range.from);
-                }
-                if (range?.to) {
-                  handleEndDateSelect(range.to);
-                }
-              }}
+              onSelect={handleDateSelect}
               disabled={(date) => {
                 // Disable dates more than 30 days from start date
                 if (startDate) {
@@ -182,18 +163,16 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
                 // Disable future dates
                 return isAfter(date, new Date());
               }}
-              numberOfMonths={2}
+              numberOfMonths={1}
+              className="rounded-md border-0"
             />
             
             {/* Date Range Info */}
             {startDate && endDate && (
-              <div className="mt-3 pt-3 border-t text-sm text-muted-foreground">
-                <div className="flex items-center justify-between">
-                  <span>Range:</span>
-                  <span className="font-medium">{getDateRangeInfo()}</span>
-                </div>
-                <div className="text-xs mt-1">
-                  Max: 30 days from start date
+              <div className="mt-3 pt-3 border-t text-sm text-muted-foreground text-center">
+                <span className="font-medium">{getDateRangeInfo()}</span>
+                <div className="text-xs mt-1 opacity-75">
+                  Max: 30 days
                 </div>
               </div>
             )}
@@ -208,6 +187,7 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
           size="sm"
           onClick={clearDates}
           className="h-8 w-8 p-0"
+          title="Reset to last 30 days"
         >
           <X className="h-4 w-4" />
         </Button>
