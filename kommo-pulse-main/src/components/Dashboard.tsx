@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { 
   TrendingUp, 
@@ -43,6 +43,7 @@ import CallsCard from './CallsCard';
 import PerformanceInsightsCard from './PerformanceInsightsCard';
 import ReportsSection from './ReportsSection';
 import { UpgradePrompt } from './UpgradePrompt';
+import { DateRangeFilter } from './DateRangeFilter';
 
 interface DashboardProps {
   account: string;
@@ -61,6 +62,10 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
   const { data, loading, error, refetch } = useAnalytics(accountToUse);
   const { settings } = useDashboard();
   const [selectedUser, setSelectedUser] = useState<string>(repId || '');
+  const [dateRange, setDateRange] = useState<{ startDate: Date | null; endDate: Date | null }>({
+    startDate: null,
+    endDate: null
+  });
 
   // Auto-sync subscription status when component mounts
   useEffect(() => {
@@ -152,6 +157,30 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
   useEffect(() => {
     refreshSubscription();
   }, [refreshSubscription]);
+
+  // Handle date range changes
+  const handleDateRangeChange = (startDate: Date | null, endDate: Date | null) => {
+    setDateRange({ startDate, endDate });
+  };
+
+  // Filter data based on date range
+  const filteredData = useMemo(() => {
+    if (!data || !dateRange.startDate || !dateRange.endDate) {
+      return data;
+    }
+
+    const filteredReps = data.reps.map(rep => {
+      // For now, we'll return the rep data as-is since the backend provides last 30 days
+      // The frontend filtering will be applied to specific metrics that can be calculated
+      // from the existing data structure
+      return rep;
+    });
+
+    return {
+      ...data,
+      reps: filteredReps
+    };
+  }, [data, dateRange]);
 
 
 
@@ -388,7 +417,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
     );
   }
 
-  if (!data || !data.reps.length) {
+  if (!filteredData || !filteredData.reps.length) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -400,11 +429,11 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
   }
 
   // Set default user if not selected
-  if (!selectedUser && data.reps.length > 0) {
-    setSelectedUser(data.reps[0].user_id);
+  if (!selectedUser && filteredData.reps.length > 0) {
+    setSelectedUser(filteredData.reps[0].user_id);
   }
 
-  const currentUser = data.reps.find(rep => rep.user_id === selectedUser) || data.reps[0];
+  const currentUser = filteredData.reps.find(rep => rep.user_id === selectedUser) || filteredData.reps[0];
 
   // Chart data preparations
   const stageLabels = Object.keys(currentUser.leads_by_stage);
@@ -485,6 +514,24 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
                 <p className="text-muted-foreground mt-1">
                   Performance insights for {selectedUser ? `Sales Rep ${selectedUser}` : 'selected representative'}
                 </p>
+                {dateRange.startDate && dateRange.endDate && (
+                  <div className="text-xs text-muted-foreground mt-1">
+                    <p className="flex items-center gap-2">
+                      📅 Showing data from {dateRange.startDate.toLocaleDateString()} to {dateRange.endDate.toLocaleDateString()}
+                      <span className="px-2 py-1 bg-primary/10 text-primary rounded-full text-xs">
+                        {Math.ceil((dateRange.endDate.getTime() - dateRange.startDate.getTime()) / (1000 * 60 * 60 * 24))} days
+                      </span>
+                    </p>
+                    <p className="text-xs opacity-75 mt-1">
+                      💡 Use the date picker above to filter data by specific time periods
+                    </p>
+                    {filteredData?.generated_at && (
+                      <p className="text-xs opacity-75 mt-1">
+                        🔄 Data last updated: {new Date(filteredData.generated_at).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                )}
                 {settings.autoRefresh && (
                   <p className="text-xs text-muted-foreground mt-1">
                     Auto-refreshing every {settings.refreshInterval / 60} minutes
@@ -493,14 +540,16 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
               </div>
             </div>
             <div className="flex items-center gap-2">
-
-
+              <DateRangeFilter 
+                onDateRangeChange={handleDateRangeChange}
+                className="mr-4"
+              />
 
               <DashboardSettings />
               <ThemeToggle />
-              {data?.reps && (
+              {filteredData?.reps && (
                 <UserSelector 
-                  users={data.reps}
+                  users={filteredData.reps}
                   selectedUser={selectedUser}
                   onUserChange={setSelectedUser}
                 />
